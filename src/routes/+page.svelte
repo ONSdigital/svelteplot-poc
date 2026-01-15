@@ -16,7 +16,7 @@
     Details,
     Container,
   } from "@onsvisual/svelte-components";
-  import { Chart } from "@onsvisual/svelte-charts";
+  import { Chart } from "@onsvisual/onssvelteplot";
   import ChartActions from "$lib/layout/ChartActions.svelte";
   import SummaryItem from "$lib/layout/SummaryItem.svelte";
   import RoboMap from "$lib/layout/RoboMap.svelte";  

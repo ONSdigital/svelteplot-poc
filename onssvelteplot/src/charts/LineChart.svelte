@@ -8,8 +8,8 @@
 	let { 
         data, 
         variant,
-        xKey, 
-        yKey,
+        xKey = "x", 
+        yKey = "y",
         zKey,
         xAxisLabel,
         yAxisLabel, 
@@ -129,7 +129,7 @@
         z={variant == "focus" ? "focusGroup" : zKey}
         fx={variant == "small-multiple" ? zKey : null}
         lineClass={(d) => !hover ? "" : hovered == null ? "" : d.datum[zKey] == hovered[0][zKey] ? "hovered" : "greyed"}
-        stroke={variant != "small-multiple" ? zKey : null}
+        stroke={variant == "focus" ? "focusGroup" : variant != "small-multiple" ? zKey : null}
         strokeWidth={(d) => variant == "focus" && (d.focusGroup == focusLabels[0] || d.focusGroup == focusLabels[1]) ? 3 : variant == "focus" ? 2 : 3}
     />
     {#if addEndMarkers && !addMarkers}

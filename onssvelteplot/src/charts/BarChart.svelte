@@ -7,8 +7,8 @@
 	let { 
         data, 
         variant = "simple",
-        xKey, 
-        yKey,
+        xKey = "x", 
+        yKey = "y",
         zKey,
         xAxisLabel,
         yAxisLabel, 
@@ -119,7 +119,6 @@
         }
     })
     
-
     // let chartData = $derived.by(() => {
     //     if(ySort == "ascending"){
     //         return sort(data, (a, b) => ascending(a[xKey], b[xKey]))
