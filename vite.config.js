@@ -6,7 +6,7 @@ const config = {
         plugins: [sveltekit()],        
         server:{
                 fs:{
-                        allow:['onssvelteplot']
+                        allow:['onssvelteplot','d3']
                 }
         },
         //removes console.logs in production

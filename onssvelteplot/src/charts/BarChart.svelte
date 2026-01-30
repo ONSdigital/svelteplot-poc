@@ -1,5 +1,5 @@
 <script>
-    import { Plot, GridX, BarX, AxisX, AxisY, Text, RuleX, Pointer } from 'svelteplot';
+    import { Plot, GridX, BarX, AxisX, AxisY, Text, RuleX, Pointer, stackX } from 'svelteplot';
     import { format } from "d3-format";
     import { timeParse, timeFormat} from "d3-time-format"
     import { extent, min, max, sum, sort, ascending, descending } from "d3-array"
@@ -28,7 +28,7 @@
         height,
         seriesHeight = 34,
         hover = false,
-        margin = {top: 20, bottom: 0, right: 20, left: 80}, 
+        margin = {top: 0, bottom: 0, right: 20, left: 150}, 
         colours = 
             variant == "clustered" ?
                 ['#206095', '#27A0CC', '#871A5B', '#A8BD3A', '#F66068', '#05341A'] :
@@ -37,6 +37,27 @@
     } = $props();
 
     let hovered = $state();
+
+    let categories = $derived(zKey ? new Set(data.map((d) => d[zKey])) : null)
+
+    let colourScheme = $derived.by(() => {
+        let coloursvar;
+        if(categories){
+            coloursvar = {}
+            let i = 0
+            categories.forEach((category) => {
+                coloursvar[category] = colours[i]
+                i = i+1
+            })
+        } else if(colours.length > 1){
+            coloursvar = colours[0]
+        } else{
+            coloursvar = colours
+        }
+        console.log(coloursvar)
+        return coloursvar
+    })
+
 
     let domainX = $derived.by(() => {
         if(xDomain == "auto" && variant != "stacked"){
@@ -118,6 +139,21 @@
             return [...new Set(data.map((d) => d[yKey]))]
         }
     })
+
+    let stackedLabels = $derived.by(() => {
+        const charPixelWidth = 7;
+        let stackedData = [];
+        domainY.forEach((category) => {
+            var filteredData = data.filter((d) => d[yKey] == category)
+            filteredData.forEach((d, i) => {
+                d.xLabelPos = i == 0 ? d[xKey] : filteredData[i-1].xLabelPos + d[xKey]
+                d.labelWidth = d[xKey].toString().length * charPixelWidth
+            })
+            stackedData.push(...filteredData)
+        })
+        console.log(stackedData)
+        return stackedData
+    })
     
     // let chartData = $derived.by(() => {
     //     if(ySort == "ascending"){
@@ -133,13 +169,32 @@
 
 </script>
 
+{#if categories}
+    <div class="legend">
+        {#each categories as legendItem, i}
+            <div class="legend-item">
+                <svg height=24 width=24>
+                    <circle
+                        cx=12
+                        cy=12
+                        r=7
+                        fill={colourScheme[legendItem]}
+                    />
+                </svg>
+                <p>{legendItem}</p>
+            </div>
+        {/each}
+    </div>
+{/if}
+
 <Plot 
-    marginLeft={margin.left}
-    marginRight={margin.right} 
-    marginTop={margin.top} 
-    marginBottom={margin.bottom} 
+    marginLeft={margin.left ? margin.left : null}
+    marginRight={margin.right ? margin.right : null}
+    marginTop={margin.top ? margin.top : null}
+    marginBottom={margin.bottom ? margin.bottom : null}
     height = {derivedHeight ? derivedHeight : height} 
     y={{ 
+        axis: 'left',
         domain: variant == "clustered" ? null : domainY, 
         tickSpacing: 10, 
         label: yAxisLabel ? yAxisLabel : "",
@@ -147,29 +202,26 @@
     }} 
     x={{ 
         domain: domainX, 
-        label:xAxisLabel ? xAxisLabel : ""
+        label:xAxisLabel ? xAxisLabel : "",
+        tickFormat: (d) => xFormatDate ? timeFormat(xFormat)(timeParse(xFormatDate)(d)) : xFormat ? format(xFormat)(d) : d
     }}
     color={{ 
-        legend: variant == "clustered" || variant == "stacked" ? true : false,
+        // legend: variant == "clustered" || variant == "stacked" ? true : false,
         scheme: colours
     }}
     fy={{
         axis: 'left',
-        anchor: 'left',
+        labelAnchor: 'bottom',
         domain: variant == "clustered" ? domainY : null,
         axisOptions: {
-            dx: -margin.left
+            dx: -margin.left + 8
         }
-    }}
-    fx={{
-        tickFormat: (d) => zFormatDate ? timeFormat(zFormat)(timeParse(zFormatDate)(d)) : zFormat ? format(zFormat)(d) : d
     }}
 >
     <AxisX
        tickCount={xAxisTicks}
-       tickFormat ={ (d) => xFormatDate ? timeFormat(xFormat)(timeParse(xFormatDate)(d)) : xFormat ? format(yFormat)(d) : d }
+       tickSize={derivedHeight ? -derivedHeight : -height}
     />
-	<GridX stroke="#D9D9D9"/>
     <BarX 
         data={data}
         x={xKey} 
@@ -178,7 +230,7 @@
         fx={variant == "small-multiple" ? zKey : null}
         order={variant == "clustered" ? 'z' : null}
         sort={!ySort ? false : ySort == "ascending" ? { channel: 'x' } : { channel: '-x' }}
-        fill={variant == "stacked" || variant == "clustered" ? zKey : true}
+        fill={variant == "stacked" || variant == "clustered" ? (d) => colourScheme[d[zKey]] : true}
     />
     {#if hover}
         <Pointer
@@ -192,14 +244,19 @@
 
     {#if dataLabels}
         <Text
-            data={data}
-            x={xKey} 
+            data={variant == "stacked" ? stackedLabels : data}
+            x={variant == "stacked" ? "xLabelPos" : xKey} 
             y={variant == "clustered" ? zKey : yKey}
             fy={variant == "clustered" ? yKey : null}
             fx={variant == "small-multiple" ? zKey : null}
             textAnchor={(d) => {
-                console.log(d)
-                return d[xKey] < domainX[1]*0.2 ? "start" : "end"}}
+                    if(variant == "stacked"){
+                        return d[xKey] > 0 ? "end" : "start"
+                    } else{
+                        return d[xKey] < domainX[1]*0.2 ? "start" : "end"
+                    }
+                }
+            }
             dx={(d) => {
                 if(variant == "stacked"){
                     return -4
@@ -207,9 +264,9 @@
                     return d[xKey] < domainX[1]*0.2 ? 4 : -4}
                 }
             }
-            text={(d) => dataLabels.format ? format(dataLabels.format)(d[xKey]) : d[xKey]}
+            text={(d) => dataLabels.format ? format(dataLabels.format)(d[xKey]) : xFormat ? format(xFormat)(d[xKey]) : d[xKey]}
             textClass="dataLabel"
-            fill={(d) => d[xKey] < domainX[1]*0.2 ? "#414042" : "#FFFFFF"}
+            fill={"#FFFFFF"}
         />
     {/if}
     {#if children}
@@ -235,5 +292,13 @@
     }
     :global(.item rect){
         ry: 12;
+    }
+    .legend{
+        display: flex;
+        flex-direction: row;
+    }
+    .legend-item{
+        display: flex;
+        flex-direction: row;
     }
 </style>

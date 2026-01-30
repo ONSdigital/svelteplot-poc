@@ -1,5 +1,6 @@
 <script>
   import BarChart from "./BarChart.svelte";
+  import BarChartCustom from "./BarChart-custom.svelte"
   import LineChart from "./LineChart.svelte";
 
   /**
@@ -22,6 +23,9 @@
    * @type {object|null}
    */
   export let options = null;
+
+  let width;
+  $: width;
 
   const directions = ["left", "right", "top", "bottom"];
   const regex = /^\[(?:'[^']*'|"[^"]*"|\d+(?:\.\d+)?)(,?)*]$/;//this regex looks for an array
@@ -67,10 +71,14 @@
 
 {#if props}
 {#key props.data}
+<div class="chart-container" bind:clientWidth={width}>
   {#if type.toLowerCase() === "bar"}
-    <BarChart {...props}/>
+    <BarChart {width} {...props}/>
+  {:else if type.toLowerCase() === "bar-custom"}
+    <BarChartCustom {width} {...props}/>
   {:else if type.toLowerCase() === "line"}
-    <LineChart {...props}/>
+    <LineChart {width} {...props}/>
   {/if}
+</div>
 {/key}
 {/if}
