@@ -176,18 +176,14 @@
 </script>
 
 {#if categories}
-    <div class="legend">
+    <div id="legend">
         {#each categories as legendItem, i}
-            <div class="legend-item">
-                <svg height=24 width=24>
-                    <circle
-                        cx=12
-                        cy=12
-                        r=7
-                        fill={colourScheme[legendItem]}
-                    />
-                </svg>
-                <p>{legendItem}</p>
+            <div class="legend--item">
+                <div
+                    class="legend--icon--circle"
+                    style:background-color={colourScheme[legendItem]}
+                />
+                <p class="legend--text">{legendItem}</p>
             </div>
         {/each}
     </div>
@@ -286,18 +282,16 @@
 		stroke-width: 1px !important;
 		stroke-opacity: 1 !important;
 	}
-	:global(text){
+	:global(text, p, span){
 		font-family: 'OpenSans', 'Helvetica Neue', arial, sans-serif !important;
         font-size: 14px !important;
+        margin: 0 !important
 	}
     :global(.dataLabel){
         font-weight: 600 !important;
     }
     :global(.item){
         font-size: 14px !important;
-    }
-    :global(.item rect){
-        ry: 12;
     }
     .legend{
         display: flex;
@@ -306,5 +300,11 @@
     .legend-item{
         display: flex;
         flex-direction: row;
+        align-items: center;
+        color: #414042;
+        margin: 14px;
+    }
+    .legend-symbol{
+        margin-right: 4px;
     }
 </style>
