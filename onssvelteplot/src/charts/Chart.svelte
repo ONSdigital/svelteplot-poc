@@ -1,7 +1,6 @@
 <script>
   import BarChart from "./BarChart.svelte";
   import BarChartCustom from "./BarChart-custom.svelte"
-  import LineChart from "./LineChart.svelte";
 
   /**
    * An alternative way to pass in all of the chart props as a single object {chartType, data, ...options}
@@ -76,8 +75,6 @@
     <BarChart {width} {...props}/>
   {:else if type.toLowerCase() === "bar-custom"}
     <BarChartCustom {width} {...props}/>
-  {:else if type.toLowerCase() === "line"}
-    <LineChart {width} {...props}/>
   {/if}
 </div>
 {/key}
