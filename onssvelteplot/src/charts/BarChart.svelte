@@ -3,6 +3,8 @@
     import { format } from "d3-format";
     import { timeParse, timeFormat} from "d3-time-format"
     import { extent, min, max, sum, sort, ascending, descending } from "d3-array"
+    import * as d3 from 'd3';
+    import { onMount } from 'svelte';
 
 	let { 
         data, 
@@ -154,6 +156,10 @@
         console.log(stackedData)
         return stackedData
     })
+
+    onMount(() => {
+        d3.selectAll(".is-left").attr("text-anchor","end")
+    })
     
     // let chartData = $derived.by(() => {
     //     if(ySort == "ascending"){
@@ -214,7 +220,7 @@
         labelAnchor: 'bottom',
         domain: variant == "clustered" ? domainY : null,
         axisOptions: {
-            dx: -margin.left + 8
+            dx: -5
         }
     }}
 >
