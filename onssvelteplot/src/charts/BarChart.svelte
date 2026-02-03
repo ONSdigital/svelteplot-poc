@@ -38,6 +38,8 @@
         children
     } = $props();
 
+    $inspect(data)
+
     let hovered = $state();
 
     let categories = $derived(zKey ? new Set(data.map((d) => d[zKey])) : null)
@@ -56,7 +58,6 @@
         } else{
             coloursvar = colours
         }
-        console.log(coloursvar)
         return coloursvar
     })
 
@@ -153,7 +154,6 @@
             })
             stackedData.push(...filteredData)
         })
-        console.log(stackedData)
         return stackedData
     })
 
