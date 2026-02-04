@@ -8,6 +8,7 @@
 
 	let { 
         data, 
+        width,
         variant = "simple",
         xKey = "x", 
         yKey = "y",
@@ -38,7 +39,7 @@
         children
     } = $props();
 
-    $inspect(data)
+    $inspect(width)
 
     let hovered = $state();
 

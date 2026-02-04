@@ -1,8 +1,8 @@
 <script>
   import BarChart from "./BarChart.svelte";
   import BarChartCustom from "./BarChart-custom.svelte"
+  import SmallMultiple from "./SmallMultiple.svelte";
 
-  import { Grid, GridCell } from "@onsvisual/svelte-components"
   import * as d3 from 'd3';
 
   let {
@@ -74,16 +74,9 @@
 
 {#if props}
   {#if props.smKey}
-    <Grid width="full" colWidth={props.colWidth ? props.colWidth : "wide"}>
-      {#each Object.keys(smData) as group, i}
-        <GridCell>
-            <div>{group}</div>
-            {#if type.toLowerCase() === "bar"}
-              <BarChart {width} {...props} data={smData[group]}/>
-            {/if}
-        </GridCell>
-      {/each}
-    </Grid>
+    <div class="chart-container" bind:clientWidth={width}>
+      <SmallMultiple {props} data={smData} {width} {type}/>
+    </div>
   {:else}
     {#key props.data}
     <div class="chart-container" bind:clientWidth={width}>

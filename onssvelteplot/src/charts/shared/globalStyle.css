@@ -234,7 +234,7 @@ text.title {
 }
 
 .chart-container {
-  display: inline-block;
+  /* display: inline-block; */
   vertical-align: top;
 }
 
