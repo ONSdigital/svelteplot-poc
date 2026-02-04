@@ -31,6 +31,7 @@
         height,
         seriesHeight = 34,
         hover = false,
+        smGridPosition,
         margin = {top: 0, bottom: 0, right: 20, left: 150}, 
         colours = 
             variant == "clustered" ?
@@ -196,15 +197,17 @@
     marginTop={margin.top ? margin.top : null}
     marginBottom={margin.bottom ? margin.bottom : null}
     height = {derivedHeight ? derivedHeight : height} 
+    {width}
     y={{ 
         axis: 'left',
         domain: variant == "clustered" ? null : domainY, 
         tickSpacing: 10, 
         label: yAxisLabel ? yAxisLabel : "",
-        tickFormat: (d) => variant == "clustered" ? "" : yFormatDate ? timeFormat(yFormat)(timeParse(yFormatDate)(d)) : yFormat ? format(yFormat)(d) : d
+        tickFormat: (d) => variant == "clustered" || smGridPosition > 0 ? "" : yFormatDate ? timeFormat(yFormat)(timeParse(yFormatDate)(d)) : yFormat ? format(yFormat)(d) : d
     }} 
     x={{ 
         domain: domainX, 
+        axis: 'bottom',
         label:xAxisLabel ? xAxisLabel : "",
         tickFormat: (d) => xFormatDate ? timeFormat(xFormat)(timeParse(xFormatDate)(d)) : xFormat ? format(xFormat)(d) : d
     }}
@@ -218,7 +221,8 @@
         domain: variant == "clustered" ? domainY : null,
         axisOptions: {
             dx: -5
-        }
+        },
+        tickFormat: (d) => smGridPosition > 0 ? "" : yFormatDate ? timeFormat(yFormat)(timeParse(yFormatDate)(d)) : yFormat ? format(yFormat)(d) : d
     }}
 >
     <AxisX
