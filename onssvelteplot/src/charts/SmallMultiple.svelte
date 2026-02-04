@@ -23,6 +23,7 @@
         <div 
             class="item"
             width={i % chartEvery == 0 ? itemWidth + margin.left : i % chartEvery == chartEvery ? itemWidth + chartGap + margin.right : itemWidth + chartGap}>
+            <h4>{group}</h4>
             {#if type.toLowerCase() === "bar"}
                 <BarChart 
                     {...props} 

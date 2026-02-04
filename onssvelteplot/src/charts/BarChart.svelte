@@ -43,7 +43,7 @@
 
     let hovered = $state();
 
-    let categories = $derived(zKey ? new Set(data.map((d) => d[zKey])) : null)
+    let categories = $derived(zKey && variant != "simple" ? new Set(data.map((d) => d[zKey])) : null)
 
     let colourScheme = $derived.by(() => {
         let coloursvar;
