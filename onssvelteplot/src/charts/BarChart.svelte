@@ -208,7 +208,7 @@
     x={{ 
         domain: domainX, 
         label:xAxisLabel ? xAxisLabel : "",
-        tickFormat: (d) => xFormatDate ? timeFormat(xFormat)(timeParse(xFormatDate)(d)) : xFormat ? format(xFormat)(d) : d
+        tickFormat: (d) => xFormatDate ? timeFormat(xFormat)(timeParse(xFormatDate)(d)) : xFormat ? format(xFormat)(d) : d,
     }}
     color={{ 
         // legend: variant == "clustered" || variant == "stacked" ? true : false,
@@ -224,10 +224,7 @@
         tickFormat: (d) => smGridPosition > 0 ? "" : yFormatDate ? timeFormat(yFormat)(timeParse(yFormatDate)(d)) : yFormat ? format(yFormat)(d) : d
     }}
 >
-    <AxisX
-       tickCount={xAxisTicks}
-       tickSize={derivedHeight ? -derivedHeight : -height}
-    />
+    <GridX/>
     <BarX 
         data={data}
         x={xKey} 

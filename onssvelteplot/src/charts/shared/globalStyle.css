@@ -226,7 +226,7 @@ text, p, span, tspan {
 .title {
   font-weight: 600;
   font-size: 14px;
-  fill: var(--ons-color-grey-100);
+  color: var(--ons-color-grey-100);
   font-family: "Open Sans", sans-serif;
   font-feature-settings: "salt" 1;
   forced-color-adjust: auto;
