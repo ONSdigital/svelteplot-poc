@@ -215,7 +215,7 @@ body {
   padding-bottom: 10px;
 }
 
-text {
+text, p, span, tspan {
   font-family: "Open Sans", sans-serif;
   font-feature-settings: "salt" 1;
   font-weight: 400;
@@ -223,10 +223,13 @@ text {
 }
 
 /* small multiple specific styles */
-text.title {
+.title {
   font-weight: 600;
   font-size: 14px;
   fill: var(--ons-color-grey-100);
+  font-family: "Open Sans", sans-serif;
+  font-feature-settings: "salt" 1;
+  forced-color-adjust: auto;
 }
 
 .grid line {

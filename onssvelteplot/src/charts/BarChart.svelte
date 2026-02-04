@@ -207,7 +207,6 @@
     }} 
     x={{ 
         domain: domainX, 
-        axis: 'bottom',
         label:xAxisLabel ? xAxisLabel : "",
         tickFormat: (d) => xFormatDate ? timeFormat(xFormat)(timeParse(xFormatDate)(d)) : xFormat ? format(xFormat)(d) : d
     }}

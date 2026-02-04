@@ -6,7 +6,7 @@
         props,
         data,
         width,
-        margin = {left: 160, right: 10, top: 10, bottom: 10},
+        margin = {left: 160, right: 10, top: 0, bottom: 0},
         chartEvery = 2,
         chartGap = 10,
         type
@@ -27,7 +27,7 @@
         <div 
             class="item"
             width={i % chartEvery == 0 ? itemWidth + margin.left : i % chartEvery == chartEvery ? itemWidth + chartGap + margin.right : itemWidth + chartGap}>
-            <h4>{group}</h4>
+            <div class="title" style:margin-left={i % chartEvery == 0 ? smMargin[0].left+"px": smMargin[1].left+"px"}>{group}</div>
             {#if type.toLowerCase() === "bar"}
                 <BarChart 
                     width={i % chartEvery == 0 ? itemWidth + margin.left : i % chartEvery == chartEvery ? itemWidth + chartGap + margin.right : itemWidth + chartGap}
@@ -46,9 +46,6 @@
         display: flex;
         flex-direction: row;
         flex-wrap: wrap;
-    }
-    .item{
-
     }
 
 </style>
