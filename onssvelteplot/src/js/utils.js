@@ -46,3 +46,9 @@ export function calculateCategoricalDomain(
         return [...new Set(data.map((d) => d[yKey]))]
     }
 }
+
+export function groupData(data, key){
+    const grouped = d3.group(data, d => d[key]);
+    // Convert Map to object if you need object format
+    return Object.fromEntries(grouped);
+}

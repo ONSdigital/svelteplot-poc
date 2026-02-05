@@ -94,8 +94,6 @@
 
     let domainY = $derived(calculateCategoricalDomain(data, variant, ySort, zSortKey, xKey, yKey, zKey))
 
-    $inspect("variant: ",variant, "domain: ",domainY)
-
     let stackedLabels = $derived.by(() => {
         const charPixelWidth = 7;
         
