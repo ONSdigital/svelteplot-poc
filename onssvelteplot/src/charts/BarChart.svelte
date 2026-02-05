@@ -70,7 +70,6 @@
         return coloursvar
     })
 
-
     let domainX = $derived(getContinuousDomain({
         data: data,
         variant: variant,
@@ -78,7 +77,6 @@
         valueKey: xKey,
         xDomain: xDomain
     }))
-
 
     let chartHeight = $derived(height ? height : getChartHeight({data: data, seriesHeight: seriesHeight, cateogryKey: yKey, groupKey: zKey, variant: variant}))
 
