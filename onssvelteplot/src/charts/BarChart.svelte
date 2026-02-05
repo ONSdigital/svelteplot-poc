@@ -10,9 +10,10 @@
         getContinuousDomain, 
         groupData, 
         stackData, 
-        textPixelWidth, 
+        labelPixelWidth, 
         getChartHeight, 
-        getSeriesHeight 
+        getSeriesHeight,
+        getAxisMargin 
     } from '../js/utils';
 
 	let { 
@@ -41,7 +42,7 @@
         seriesHeight = 34,
         hover = false,
         smGridPosition,
-        margin = {top: 0, bottom: 0, right: 20, left: 150}, 
+        margin = {top: 0, bottom: 0, right: 20}, 
         colours = 
             variant == "clustered" ?
                 ['#206095', '#27A0CC', '#871A5B', '#A8BD3A', '#F66068', '#05341A'] :
@@ -78,6 +79,8 @@
         xDomain: xDomain
     }))
 
+    $inspect(domainX)
+
     let chartHeight = $derived(height ? height : getChartHeight({data: data, seriesHeight: seriesHeight, cateogryKey: yKey, groupKey: zKey, variant: variant}))
 
     let barHeight = $derived(seriesHeight ? seriesHeight : getSeriesHeight({data: data, height: height, cateogryKey: yKey, groupKey: zKey, variant: variant}))
@@ -93,28 +96,31 @@
     }))
 
     let xScale = $derived(
-        d3.scaleLinear().range([0, width-margin.left-margin.right]).domain(domainX)
+        d3.scaleLinear().range([0, width-yAxisMargin-margin.right]).domain(domainX)
     )
+
+    let yAxisMargin = $derived(margin.left ? margin.left : getAxisMargin({domain: domainY}))
 
     let labels = $derived.by(() => {
         if(variant == "stacked"){
             let stackedData = stackData({data: data, categoryKey: yKey, valueKey: xKey, categories: domainY})
             stackedData.forEach((d) => {
-                d.labelWidth = textPixelWidth(d[xKey])
+                d.labelWidth = labelPixelWidth(d[xKey])
                 d.barWidth = xScale(d[xKey])
                 d.show = d.barWidth > d.labelWidth ? true : false
                 d.anchor = d[xKey] > 0 ? 'end' : 'start'
-                d.fill= '#FFFFFF'
+                d.fill = '#FFFFFF'
             })
             return stackedData
         } else{
             let labelData = [...data]
             labelData.forEach((d) => {
-                d.labelWidth = textPixelWidth(d[xKey])
+                d.labelWidth = labelPixelWidth(d[xKey])
                 d.show = true
                 d.anchor = xScale(d[xKey]) - d.labelWidth > 0 ? "end" : "start"
                 d.fill = d.anchor == "end" ? "#FFFFFF" : "#414042"
             })
+            console.log(labelData)
             return labelData
         }
     })
@@ -140,7 +146,7 @@
 {/if}
 
 <Plot 
-    marginLeft={margin.left ? margin.left : null}
+    marginLeft={yAxisMargin}
     marginRight={margin.right ? margin.right : null}
     marginTop={margin.top ? margin.top : null}
     marginBottom={margin.bottom ? margin.bottom : null}

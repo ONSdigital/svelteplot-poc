@@ -133,7 +133,8 @@ export function stackData({
     return stackedData;
 }
 
-export function textPixelWidth(text,charPixelWidth = 14){
+export function labelPixelWidth(text){
+	const charPixelWidth = 8
 	text = text.toString()
 	return text.length * charPixelWidth
 }
@@ -164,4 +165,13 @@ export function getChartHeight({
 	} else{
         seriesHeight * ([...new Set(data.map((d) => d[categoryKey]))].length)
 	}
+}
+
+export function getAxisMargin({
+	domain,
+	charPixelWidth = 8
+}){
+	let lengths = []
+	domain.forEach((d) => lengths.push(labelPixelWidth(d)))
+	return d3.max(lengths)
 }
