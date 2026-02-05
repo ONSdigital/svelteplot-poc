@@ -5,7 +5,15 @@
     import { extent, min, max, sum, sort, ascending, descending } from "d3-array"
     import * as d3 from 'd3';
     import { onMount } from 'svelte';
-    import { calculateCategoricalDomain, groupData, stackData, textPixelWidth } from '../js/utils';
+    import { 
+        getCategoricalDomain, 
+        getContinuousDomain, 
+        groupData, 
+        stackData, 
+        textPixelWidth, 
+        getChartHeight, 
+        getSeriesHeight 
+    } from '../js/utils';
 
 	let { 
         data, 
@@ -63,35 +71,28 @@
     })
 
 
-    let domainX = $derived.by(() => {
-        if(xDomain == "auto" && variant != "stacked"){
-            if(min(data.map((d) => d[xKey])) < 0){
-                return extent(data.map((d) => d[xKey]))
-            } else{
-                return [0, max(data.map((d) => d[xKey]))]
-            }
-        } else if(xDomain == "auto" && variant == "stacked"){
-            let maxes = []
-            let filteredData;
-            let yKeys = [...new Set(data.map((d) => d[yKey]))]
-            yKeys.forEach((category) => {
-                filteredData = data.filter((d) => d[yKey] == category)
-                maxes.push(sum(filteredData.map((d) => d[xKey])))
-            })
-            return [0, max(maxes)]
-        }
-    })
+    let domainX = $derived(getContinuousDomain({
+        data: data,
+        variant: variant,
+        categoryKey: yKey,
+        valueKey: xKey,
+        xDomain: xDomain
+    }))
 
 
-    let chartHeight = $derived(height ? height : variant == "clustered" ? 
-        seriesHeight * ([...new Set(data.map((d) => d[yKey]))].length * [...new Set(data.map((d) => d[zKey]))].length) :
-        seriesHeight * ([...new Set(data.map((d) => d[yKey]))].length))
+    let chartHeight = $derived(height ? height : getChartHeight({data: data, seriesHeight: seriesHeight, cateogryKey: yKey, groupKey: zKey, variant: variant}))
 
-    let barHeight = $derived(seriesHeight ? seriesHeight : variant == "clustered" ? 
-        seriesHeight = height / ([...new Set(data.map((d) => d[yKey]))].length * [...new Set(data.map((d) => d[zKey]))].length) :
-        seriesHeight = height / ([...new Set(data.map((d) => d[yKey]))].length))
+    let barHeight = $derived(seriesHeight ? seriesHeight : getSeriesHeight({data: data, height: height, cateogryKey: yKey, groupKey: zKey, variant: variant}))
 
-    let domainY = $derived(calculateCategoricalDomain(data, variant, ySort, zSortKey, xKey, yKey, zKey))
+    let domainY = $derived(getCategoricalDomain({
+        data: data, 
+        variant: variant, 
+        sort: ySort, 
+        sortKey: zSortKey, 
+        valueKey: xKey, 
+        categoryKey: yKey, 
+        groupKey: zKey
+    }))
 
     let xScale = $derived(
         d3.scaleLinear().range([0, width-margin.left-margin.right]).domain(domainX)
@@ -99,7 +100,7 @@
 
     let labels = $derived.by(() => {
         if(variant == "stacked"){
-            let stackedData = stackData(data, yKey, xKey, domainY)
+            let stackedData = stackData({data: data, categoryKey: yKey, valueKey: xKey, categories: domainY})
             stackedData.forEach((d) => {
                 d.labelWidth = textPixelWidth(d[xKey])
                 d.barWidth = xScale(d[xKey])
@@ -123,18 +124,6 @@
     onMount(() => {
         d3.selectAll(".is-left").attr("text-anchor","end")
     })
-    
-    // let chartData = $derived.by(() => {
-    //     if(ySort == "ascending"){
-    //         return sort(data, (a, b) => ascending(a[xKey], b[xKey]))
-    //     } else if(ySort == "descending"){
-    //         return sort(data, (a, b) => descending(a[xKey], b[xKey]))
-    //     } else{
-    //         return data
-    //     }
-    // })
-
-    // let chartYDomain = $derived(!yDomain ? [...new Set(chartData.map((d) => d[yKey]))] : yDomain)
 
 </script>
 
