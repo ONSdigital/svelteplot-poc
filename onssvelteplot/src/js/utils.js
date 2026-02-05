@@ -104,7 +104,7 @@ export function stackData(data, categoryKey, valueKey, categories) {
     return stackedData;
 }
 
-export function textPixelWidth(text,charPixelWidth = 7){
+export function textPixelWidth(text,charPixelWidth = 14){
 	text = text.toString()
 	return text.length * charPixelWidth
 }

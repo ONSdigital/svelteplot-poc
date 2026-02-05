@@ -93,13 +93,30 @@
 
     let domainY = $derived(calculateCategoricalDomain(data, variant, ySort, zSortKey, xKey, yKey, zKey))
 
-    let stackedLabels = $derived.by(() => {
+    let xScale = $derived(
+        d3.scaleLinear().range([0, width-margin.left-margin.right]).domain(domainX)
+    )
+
+    let labels = $derived.by(() => {
         if(variant == "stacked"){
             let stackedData = stackData(data, yKey, xKey, domainY)
-            stackedData.forEach((d) => d.labelWidth = textPixelWidth(d[xKey]))
+            stackedData.forEach((d) => {
+                d.labelWidth = textPixelWidth(d[xKey])
+                d.barWidth = xScale(d[xKey])
+                d.show = d.barWidth > d.labelWidth ? true : false
+                d.anchor = d[xKey] > 0 ? 'end' : 'start'
+                d.fill= '#FFFFFF'
+            })
             return stackedData
         } else{
-            return null
+            let labelData = [...data]
+            labelData.forEach((d) => {
+                d.labelWidth = textPixelWidth(d[xKey])
+                d.show = true
+                d.anchor = xScale(d[xKey]) - d.labelWidth > 0 ? "end" : "start"
+                d.fill = d.anchor == "end" ? "#FFFFFF" : "#414042"
+            })
+            return labelData
         }
     })
 
@@ -191,29 +208,22 @@
 
     {#if dataLabels}
         <Text
-            data={variant == "stacked" ? stackedLabels : data}
+            data={labels.filter((d) => d.show == true)}
             x={variant == "stacked" ? "stackEnd" : xKey} 
             y={variant == "clustered" ? zKey : yKey}
             fy={variant == "clustered" ? yKey : null}
             fx={variant == "small-multiple" ? zKey : null}
-            textAnchor={(d) => {
-                    if(variant == "stacked"){
-                        return d[xKey] > 0 ? "end" : "start"
-                    } else{
-                        return d[xKey] < domainX[1]*0.2 ? "start" : "end"
-                    }
-                }
-            }
+            textAnchor={(d) => d.anchor}
             dx={(d) => {
                 if(variant == "stacked"){
                     return -4
                 } else{
-                    return d[xKey] < domainX[1]*0.2 ? 4 : -4}
+                    return d.anchor == 'end' ? -4 : 4}
                 }
             }
             text={(d) => dataLabels.format ? format(dataLabels.format)(d[xKey]) : xFormat ? format(xFormat)(d[xKey]) : d[xKey]}
             textClass="dataLabel"
-            fill={"#FFFFFF"}
+            fill={(d) => d.fill}
         />
     {/if}
     {#if children}
