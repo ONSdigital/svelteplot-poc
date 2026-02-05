@@ -46,3 +46,65 @@ export function calculateCategoricalDomain(
         return [...new Set(data.map((d) => d[yKey]))]
     }
 }
+
+export function groupData(data, key){
+    const grouped = d3.group(data, d => d[key]);
+    // Convert Map to object if you need object format
+    return Object.fromEntries(grouped);
+}
+
+export function stackData(data, categoryKey, valueKey, categories) {
+    // Group data by category
+    const grouped = groupData(data, categoryKey);
+    
+    // Transform grouped data for D3 stack
+    const dataByCategory = categories.map(category => {
+        const categoryData = { category };
+        const categoryItems = grouped[category] || [];
+        
+        categoryItems.forEach((d, i) => {
+            categoryData[`segment_${i}`] = d[valueKey];
+            categoryData[`data_${i}`] = d;
+        });
+        
+        return categoryData;
+    });
+    
+    // Get max number of segments across all categories
+    const maxSegments = Math.max(
+        ...Object.values(grouped).map(items => items.length),
+        0
+    );
+    const segmentKeys = Array.from(
+        { length: maxSegments }, 
+        (_, i) => `segment_${i}`
+    );
+    
+    // Create stack generator and generate stacked data
+    const stackGenerator = d3.stack().keys(segmentKeys);
+    const series = stackGenerator(dataByCategory);
+    
+    // Flatten and return stacked positions
+    const stackedData = [];
+    series.forEach((serie, serieIndex) => {
+        serie.forEach((d, categoryIndex) => {
+            const originalData = dataByCategory[categoryIndex][`data_${serieIndex}`];
+            
+            if (originalData) {
+                stackedData.push({
+                    ...originalData,
+                    stackStart: d[0],  // Start position of the stack segment
+                    stackEnd: d[1],    // End position of the stack segment
+                    stackValue: d[1] - d[0]  // Height/width of the segment
+                });
+            }
+        });
+    });
+    
+    return stackedData;
+}
+
+export function textPixelWidth(text,charPixelWidth = 7){
+	text = text.toString()
+	return text.length * charPixelWidth
+}

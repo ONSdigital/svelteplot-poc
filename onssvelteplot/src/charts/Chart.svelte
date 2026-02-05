@@ -2,6 +2,8 @@
   import BarChart from "./BarChart.svelte";
   import SmallMultiple from "./SmallMultiple.svelte";
   import '././shared/style.css';
+  import { groupData } from '../js/utils';
+
 
   import * as d3 from 'd3';
 
@@ -55,12 +57,10 @@
 
   let smData = $derived.by(() => {
       if(props.smKey){
-          const grouped = d3.group(props.data, d => d[props.smKey]);
-          // Convert Map to object if you need object format
-          return Object.fromEntries(grouped);
+        return groupData(props.data, props.smKey)
       }
       else{
-          return null;
+        return null;
       }
   })
 
