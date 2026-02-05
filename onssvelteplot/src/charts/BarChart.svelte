@@ -5,7 +5,7 @@
     import { extent, min, max, sum, sort, ascending, descending } from "d3-array"
     import * as d3 from 'd3';
     import { onMount } from 'svelte';
-    import { calculateCategoricalDomain } from '../js/utils';
+    import { calculateCategoricalDomain, groupData, stackData, textPixelWidth } from '../js/utils';
 
 	let { 
         data, 
@@ -91,64 +91,17 @@
         seriesHeight = height / ([...new Set(data.map((d) => d[yKey]))].length * [...new Set(data.map((d) => d[zKey]))].length) :
         seriesHeight = height / ([...new Set(data.map((d) => d[yKey]))].length))
 
-
     let domainY = $derived(calculateCategoricalDomain(data, variant, ySort, zSortKey, xKey, yKey, zKey))
 
     let stackedLabels = $derived.by(() => {
-        const charPixelWidth = 7;
-        
-        // Group data by category for D3 stack
-        const dataByCategory = domainY.map(category => {
-            const categoryData = { category };
-            data
-                .filter(d => d[yKey] === category)
-                .forEach((d, i) => {
-                    // Use a unique key for each stack segment (e.g., index or a data identifier)
-                    categoryData[`segment_${i}`] = d[xKey];
-                    // Store reference to original data
-                    categoryData[`data_${i}`] = d;
-                });
-            return categoryData;
-        });
-        
-        // Get all segment keys
-        const segmentKeys = Array.from(
-            new Set(
-                data
-                    .reduce((acc, d) => {
-                        const category = d[yKey];
-                        const index = data.filter(item => item[yKey] === category).indexOf(d);
-                        acc.push(`segment_${index}`);
-                        return acc;
-                    }, [])
-            )
-        ).sort();
-        
-        // Create stack generator
-        const stackGenerator = d3.stack()
-            .keys(segmentKeys);
-        
-        // Generate stacked data
-        const series = stackGenerator(dataByCategory);
-        
-        // Flatten and calculate label positions
-        const stackedData = [];
-        series.forEach((serie, serieIndex) => {
-            serie.forEach((d, categoryIndex) => {
-                const category = domainY[categoryIndex];
-                const originalData = dataByCategory[categoryIndex][`data_${serieIndex}`];
-                
-                if (originalData) {
-                    stackedData.push({
-                        ...originalData,
-                        xLabelPos: d[1], // End position of the stack segment
-                        labelWidth: originalData[xKey].toString().length * charPixelWidth
-                    });
-                }
-            });
-        });
-        return stackedData;
-    });
+        if(variant == "stacked"){
+            let stackedData = stackData(data, yKey, xKey, domainY)
+            stackedData.forEach((d) => d.labelWidth = textPixelWidth(d[xKey]))
+            return stackedData
+        } else{
+            return null
+        }
+    })
 
     onMount(() => {
         d3.selectAll(".is-left").attr("text-anchor","end")
@@ -239,7 +192,7 @@
     {#if dataLabels}
         <Text
             data={variant == "stacked" ? stackedLabels : data}
-            x={variant == "stacked" ? "xLabelPos" : xKey} 
+            x={variant == "stacked" ? "stackEnd" : xKey} 
             y={variant == "clustered" ? zKey : yKey}
             fy={variant == "clustered" ? yKey : null}
             fx={variant == "small-multiple" ? zKey : null}
