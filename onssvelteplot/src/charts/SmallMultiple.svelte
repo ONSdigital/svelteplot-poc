@@ -7,7 +7,7 @@
         data,
         width,
         margin = {left: 160, right: 10, top: 0, bottom: 0},
-        chartEvery = 2,
+        chartEvery = 3,
         chartGap = 10,
         type
     } = $props();
@@ -17,8 +17,6 @@
         margin,
         {left: chartGap, right: margin.right, top: margin.top, bottom: margin.bottom}
     ])
-
-    $inspect(itemWidth)
 
 </script>
 

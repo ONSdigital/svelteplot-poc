@@ -1,7 +1,7 @@
 <script>
   import BarChart from "./BarChart.svelte";
-  import BarChartCustom from "./BarChart-custom.svelte"
   import SmallMultiple from "./SmallMultiple.svelte";
+  import '././shared/style.css';
 
   import * as d3 from 'd3';
 
@@ -54,21 +54,15 @@
   let props = $derived.by(() => {return makeProps(type, data, options, section) })
 
   let smData = $derived.by(() => {
-    if(props.smKey){
-      var smGroups = [...new Set(props.data.map((d) => d[props.smKey]))]
-      var fdata = {}
-      smGroups.forEach((group) => {
-        fdata[group] = props.data.filter((d) => d[props.smKey] == group)
-      })
-      return fdata
-    }
-    else{
-      return null
-    }
+      if(props.smKey){
+          const grouped = d3.group(props.data, d => d[props.smKey]);
+          // Convert Map to object if you need object format
+          return Object.fromEntries(grouped);
+      }
+      else{
+          return null;
+      }
   })
-
-  // $inspect(smData)
-  // $inspect(props)
 
 </script>
 
@@ -82,9 +76,6 @@
     <div class="chart-container" bind:clientWidth={width}>
       {#if type.toLowerCase() === "bar"}
         <BarChart {width} {...props}/>
-      {:else if type.toLowerCase() === "bar-custom"}
-        <BarChartCustom {width} {...props}/>
-
       {/if}
     </div>
     {/key}
