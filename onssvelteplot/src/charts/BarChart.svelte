@@ -40,8 +40,6 @@
         children
     } = $props();
 
-    $inspect(width)
-
     let hovered = $state();
 
     let categories = $derived(zKey && variant != "simple" ? new Set(data.map((d) => d[zKey])) : null)
@@ -83,27 +81,14 @@
         }
     })
 
-    let derivedHeight = $derived.by(() => {
-        if(height){
-            return height
-        } else{
-            if(variant == "clustered"){
-                return seriesHeight * ([...new Set(data.map((d) => d[yKey]))].length * [...new Set(data.map((d) => d[zKey]))].length)
-            } else{
-                return seriesHeight * ([...new Set(data.map((d) => d[yKey]))].length)
-            }
-        }
-    })
 
-    $effect(() => {
-        if(height){
-            if(variant == "clustered"){
-                seriesHeight = height / ([...new Set(data.map((d) => d[yKey]))].length * [...new Set(data.map((d) => d[zKey]))].length)
-            } else{
-                seriesHeight = height / ([...new Set(data.map((d) => d[yKey]))].length)
-            }
-        }
-    })
+    let chartHeight = $derived(height ? height : variant == "clustered" ? 
+        seriesHeight * ([...new Set(data.map((d) => d[yKey]))].length * [...new Set(data.map((d) => d[zKey]))].length) :
+        seriesHeight * ([...new Set(data.map((d) => d[yKey]))].length))
+
+    let barHeight = $derived(seriesHeight ? seriesHeight : variant == "clustered" ? 
+        seriesHeight = height / ([...new Set(data.map((d) => d[yKey]))].length * [...new Set(data.map((d) => d[zKey]))].length) :
+        seriesHeight = height / ([...new Set(data.map((d) => d[yKey]))].length))
 
 
     let domainY = $derived.by(() => {
@@ -145,19 +130,61 @@
         }
     })
 
-    let stackedLabels = $derived.by(() => {
-        const charPixelWidth = 7;
-        let stackedData = [];
-        domainY.forEach((category) => {
-            var filteredData = data.filter((d) => d[yKey] == category)
-            filteredData.forEach((d, i) => {
-                d.xLabelPos = i == 0 ? d[xKey] : filteredData[i-1].xLabelPos + d[xKey]
-                d.labelWidth = d[xKey].toString().length * charPixelWidth
-            })
-            stackedData.push(...filteredData)
-        })
-        return stackedData
-    })
+let stackedLabels = $derived.by(() => {
+    const charPixelWidth = 7;
+    
+    // Group data by category for D3 stack
+    const dataByCategory = domainY.map(category => {
+        const categoryData = { category };
+        data
+            .filter(d => d[yKey] === category)
+            .forEach((d, i) => {
+                // Use a unique key for each stack segment (e.g., index or a data identifier)
+                categoryData[`segment_${i}`] = d[xKey];
+                // Store reference to original data
+                categoryData[`data_${i}`] = d;
+            });
+        return categoryData;
+    });
+    
+    // Get all segment keys
+    const segmentKeys = Array.from(
+        new Set(
+            data
+                .reduce((acc, d) => {
+                    const category = d[yKey];
+                    const index = data.filter(item => item[yKey] === category).indexOf(d);
+                    acc.push(`segment_${index}`);
+                    return acc;
+                }, [])
+        )
+    ).sort();
+    
+    // Create stack generator
+    const stackGenerator = d3.stack()
+        .keys(segmentKeys);
+    
+    // Generate stacked data
+    const series = stackGenerator(dataByCategory);
+    
+    // Flatten and calculate label positions
+    const stackedData = [];
+    series.forEach((serie, serieIndex) => {
+        serie.forEach((d, categoryIndex) => {
+            const category = domainY[categoryIndex];
+            const originalData = dataByCategory[categoryIndex][`data_${serieIndex}`];
+            
+            if (originalData) {
+                stackedData.push({
+                    ...originalData,
+                    xLabelPos: d[1], // End position of the stack segment
+                    labelWidth: originalData[xKey].toString().length * charPixelWidth
+                });
+            }
+        });
+    });
+    return stackedData;
+});
 
     onMount(() => {
         d3.selectAll(".is-left").attr("text-anchor","end")
@@ -196,7 +223,7 @@
     marginRight={margin.right ? margin.right : null}
     marginTop={margin.top ? margin.top : null}
     marginBottom={margin.bottom ? margin.bottom : null}
-    height = {derivedHeight ? derivedHeight : height} 
+    height = {chartHeight} 
     {width}
     y={{ 
         axis: 'left',
@@ -278,34 +305,5 @@
 </Plot>
 
 <style>
-	:global(.tick line, .grid-x line, .grid-y line){
-		stroke: #D9D9D9 !important;
-		stroke-width: 1px !important;
-		stroke-opacity: 1 !important;
-	}
-	:global(text, p, span){
-		font-family: 'OpenSans', 'Helvetica Neue', arial, sans-serif !important;
-        font-size: 14px !important;
-        margin: 0 !important
-	}
-    :global(.dataLabel){
-        font-weight: 600 !important;
-    }
-    :global(.item){
-        font-size: 14px !important;
-    }
-    .legend{
-        display: flex;
-        flex-direction: row;
-    }
-    .legend-item{
-        display: flex;
-        flex-direction: row;
-        align-items: center;
-        color: #414042;
-        margin: 14px;
-    }
-    .legend-symbol{
-        margin-right: 4px;
-    }
+
 </style>
