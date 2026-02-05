@@ -1,30 +1,18 @@
 <script>
   import BarChart from "./BarChart.svelte";
   import BarChartCustom from "./BarChart-custom.svelte"
+  import SmallMultiple from "./SmallMultiple.svelte";
 
-  /**
-   * An alternative way to pass in all of the chart props as a single object {chartType, data, ...options}
-   * @type {object|null}
-   */
-   export let section = null;
-  /**
-   * Type of chart
-   * @type {"bar"|"column"|"line"|"scatter"|"dotplot"|"bar-highlight"|"column-highlight"|"line-highlight"|"scatter-highlight"}
-   */
-  export let type = section?.chartType;
-  /**
-   * The data array for the chart (equivalent to parsed rows of a CSV)
-   * @type {array|null}
-   */
-  export let data = null;
-  /**
-   * Options for the chart as key:value pairs
-   * @type {object|null}
-   */
-  export let options = null;
+  import * as d3 from 'd3';
 
-  let width;
-  $: width;
+  let {
+    section = null,
+    type = section?.chartType,
+    data = null,
+    options = null
+  } = $props();
+
+  let width = $state()
 
   const directions = ["left", "right", "top", "bottom"];
   const regex = /^\[(?:'[^']*'|"[^"]*"|\d+(?:\.\d+)?)(,?)*]$/;//this regex looks for an array
@@ -63,19 +51,42 @@
     return props;
   }
 
-  $: props = makeProps(type, data, options, section);
+  let props = $derived.by(() => {return makeProps(type, data, options, section) })
 
-  $: console.log(props, type)
+  let smData = $derived.by(() => {
+    if(props.smKey){
+      var smGroups = [...new Set(props.data.map((d) => d[props.smKey]))]
+      var fdata = {}
+      smGroups.forEach((group) => {
+        fdata[group] = props.data.filter((d) => d[props.smKey] == group)
+      })
+      return fdata
+    }
+    else{
+      return null
+    }
+  })
+
+  // $inspect(smData)
+  // $inspect(props)
+
 </script>
 
 {#if props}
-{#key props.data}
-<div class="chart-container" bind:clientWidth={width}>
-  {#if type.toLowerCase() === "bar"}
-    <BarChart {width} {...props}/>
-  {:else if type.toLowerCase() === "bar-custom"}
-    <BarChartCustom {width} {...props}/>
+  {#if props.smKey}
+    <div class="chart-container" bind:clientWidth={width}>
+      <SmallMultiple {props} data={smData} {width} {type}/>
+    </div>
+  {:else}
+    {#key props.data}
+    <div class="chart-container" bind:clientWidth={width}>
+      {#if type.toLowerCase() === "bar"}
+        <BarChart {width} {...props}/>
+      {:else if type.toLowerCase() === "bar-custom"}
+        <BarChartCustom {width} {...props}/>
+
+      {/if}
+    </div>
+    {/key}
   {/if}
-</div>
-{/key}
 {/if}

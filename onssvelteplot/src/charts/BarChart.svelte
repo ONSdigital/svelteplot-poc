@@ -8,6 +8,7 @@
 
 	let { 
         data, 
+        width,
         variant = "simple",
         xKey = "x", 
         yKey = "y",
@@ -30,6 +31,7 @@
         height,
         seriesHeight = 34,
         hover = false,
+        smGridPosition,
         margin = {top: 0, bottom: 0, right: 20, left: 150}, 
         colours = 
             variant == "clustered" ?
@@ -38,9 +40,11 @@
         children
     } = $props();
 
+    $inspect(width)
+
     let hovered = $state();
 
-    let categories = $derived(zKey ? new Set(data.map((d) => d[zKey])) : null)
+    let categories = $derived(zKey && variant != "simple" ? new Set(data.map((d) => d[zKey])) : null)
 
     let colourScheme = $derived.by(() => {
         let coloursvar;
@@ -56,7 +60,6 @@
         } else{
             coloursvar = colours
         }
-        console.log(coloursvar)
         return coloursvar
     })
 
@@ -153,7 +156,6 @@
             })
             stackedData.push(...filteredData)
         })
-        console.log(stackedData)
         return stackedData
     })
 
@@ -195,17 +197,18 @@
     marginTop={margin.top ? margin.top : null}
     marginBottom={margin.bottom ? margin.bottom : null}
     height = {derivedHeight ? derivedHeight : height} 
+    {width}
     y={{ 
         axis: 'left',
         domain: variant == "clustered" ? null : domainY, 
         tickSpacing: 10, 
         label: yAxisLabel ? yAxisLabel : "",
-        tickFormat: (d) => variant == "clustered" ? "" : yFormatDate ? timeFormat(yFormat)(timeParse(yFormatDate)(d)) : yFormat ? format(yFormat)(d) : d
+        tickFormat: (d) => variant == "clustered" || smGridPosition > 0 ? "" : yFormatDate ? timeFormat(yFormat)(timeParse(yFormatDate)(d)) : yFormat ? format(yFormat)(d) : d
     }} 
     x={{ 
         domain: domainX, 
         label:xAxisLabel ? xAxisLabel : "",
-        tickFormat: (d) => xFormatDate ? timeFormat(xFormat)(timeParse(xFormatDate)(d)) : xFormat ? format(xFormat)(d) : d
+        tickFormat: (d) => xFormatDate ? timeFormat(xFormat)(timeParse(xFormatDate)(d)) : xFormat ? format(xFormat)(d) : d,
     }}
     color={{ 
         // legend: variant == "clustered" || variant == "stacked" ? true : false,
@@ -217,13 +220,11 @@
         domain: variant == "clustered" ? domainY : null,
         axisOptions: {
             dx: -5
-        }
+        },
+        tickFormat: (d) => smGridPosition > 0 ? "" : yFormatDate ? timeFormat(yFormat)(timeParse(yFormatDate)(d)) : yFormat ? format(yFormat)(d) : d
     }}
 >
-    <AxisX
-       tickCount={xAxisTicks}
-       tickSize={derivedHeight ? -derivedHeight : -height}
-    />
+    <GridX/>
     <BarX 
         data={data}
         x={xKey} 
