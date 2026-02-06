@@ -2,6 +2,8 @@
 
     import BarChart from "./BarChart.svelte";
 
+    import { getCategoricalDomain } from '../js/utils';
+
     let {
         props,
         data,
@@ -18,6 +20,16 @@
         {left: chartGap, right: margin.right, top: margin.top, bottom: margin.bottom}
     ])
 
+    let domainY = $derived(type == 'bar' && !yDomain ? getCategoricalDomain({
+        data: data[Object.keys(data)[0]], 
+        variant: props.variant, 
+        sort: props.ySort, 
+        sortKey: props.zSortKey, 
+        valueKey: props.xKey, 
+        categoryKey: props.yKey, 
+        groupKey: props.zKey
+    }) : null)
+
 </script>
 
 <div class="flex">
@@ -32,6 +44,7 @@
                     {...props} 
                     data={data[group]}
                     margin={i % chartEvery == 0 ? smMargin[0]: smMargin[1]}
+                    yDomain={domainY}
                     smGridPosition = {i % chartEvery}
                     />
             {/if}
