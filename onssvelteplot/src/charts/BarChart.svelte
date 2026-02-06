@@ -119,7 +119,7 @@
             labelData.forEach((d) => {
                 d.labelWidth = labelPixelWidth(d[xKey])
                 d.show = true
-                d.anchor = xScale(d[xKey]) - d.labelWidth > 0 ? "end" : "start"
+                d.anchor = xScale(d[xKey]) - d.labelWidth - 14 > 0 ? "end" : "start"
                 d.fill = d.anchor == "end" ? "#FFFFFF" : "#414042"
             })
             return labelData
