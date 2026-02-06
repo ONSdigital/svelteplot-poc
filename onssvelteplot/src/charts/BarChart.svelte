@@ -15,6 +15,13 @@
         getSeriesHeight,
         getAxisMargin 
     } from '../js/utils';
+    import { ONScolours, ONSpalette, oldONSpalette } from '../js/colours'
+
+    let defaultColours = {
+        simple: [ONScolours.positive, ONScolours.negative],
+        clustered: oldONSpalette,
+        stacked: ONSpalette
+    }
 
 	let { 
         data, 
@@ -43,10 +50,7 @@
         hover = false,
         smGridPosition,
         margin = {top: 0, bottom: 0, right: 20}, 
-        colours = 
-            variant == "clustered" ?
-                ['#206095', '#27A0CC', '#871A5B', '#A8BD3A', '#F66068', '#05341A'] :
-                ['#206095','#A8BD3A','#871A5B','#F66068','#05341A','#27A0CC','#003C57','#22D0B6','#746CB1','#A09FA0'],
+        colours = defaultColours[variant],
         children
     } = $props();
 
@@ -78,8 +82,6 @@
         valueKey: xKey,
         xDomain: xDomain
     }))
-
-    $inspect(domainX)
 
     let chartHeight = $derived(height ? height : getChartHeight({data: data, seriesHeight: seriesHeight, cateogryKey: yKey, groupKey: zKey, variant: variant}))
 
@@ -120,7 +122,6 @@
                 d.anchor = xScale(d[xKey]) - d.labelWidth > 0 ? "end" : "start"
                 d.fill = d.anchor == "end" ? "#FFFFFF" : "#414042"
             })
-            console.log(labelData)
             return labelData
         }
     })
@@ -185,8 +186,6 @@
         y={variant == "clustered" ? zKey : yKey}
         fy={variant == "clustered" ? yKey : null}
         fx={variant == "small-multiple" ? zKey : null}
-        order={variant == "clustered" ? 'z' : null}
-        sort={!ySort ? false : ySort == "ascending" ? { channel: 'x' } : { channel: '-x' }}
         fill={variant == "stacked" || variant == "clustered" ? (d) => colourScheme[d[zKey]] : true}
     />
     {#if hover}

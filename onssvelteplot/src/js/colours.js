@@ -168,6 +168,6 @@ export const oldONStextPalette = [ONScolours.oceanBlue, ONScolours.skyBlueDark, 
 export const ONSpalette = [ONScolours.oceanBlue, ONScolours.springGreen, ONScolours.beetrootPurple, ONScolours.coralPink, ONScolours.darkLeafGreen, ONScolours.skyBlue];
 export const ONStextPalette = [ONScolours.oceanBlue, ONScolours.springGreenDark, ONScolours.beetrootPurple, ONScolours.coralPink, ONScolours.darkLeafGreen, ONScolours.skyBlueDark];
 
-export const ONSdivPlatte = [ONScolours.beetrootPurple, ONScolours.coralPink, ONScolours.grey50, ONScolours.skyBlue, ONScolours.oceanBlue];
+export const ONSdivPalette = [ONScolours.beetrootPurple, ONScolours.coralPink, ONScolours.grey50, ONScolours.skyBlue, ONScolours.oceanBlue];
 export const ONSlinePalette = [ONScolours.oceanBlue, ONScolours.springGreen, ONScolours.beetrootPurple, ONScolours.coralPink, ONScolours.skyBlue, ONScolours.darkLeafGreen];
 
