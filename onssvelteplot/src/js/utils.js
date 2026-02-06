@@ -1,50 +1,74 @@
 import * as d3 from 'd3';
 
-export function calculateCategoricalDomain(
+export function getCategoricalDomain({
     data,
-	variant,
+	variant = 'simple',
     sort,
     sortKey,
-	xKey,
-    yKey,
-    zKey
+	valueKey = 'x',
+    categoryKey = 'y',
+    groupKey
+}
 ){
     if(sort == "ascending" && !sortKey && variant == "stacked"){
         let sortedData = [];
-        [...new Set(data.map((d) => d[yKey]))].forEach((category) => {
+        [...new Set(data.map((d) => d[categoryKey]))].forEach((category) => {
             sortedData.push({
                 category: category,
-                sum: d3.sum(data.filter((d) => d[yKey] == category).map((d) => d[xKey]))
+                sum: d3.sum(data.filter((d) => d[categoryKey] == category).map((d) => d[valueKey]))
             })
         })
         sortedData = sortedData.sort((a, b) => d3.ascending(a.sum, b.sum))
         return [...new Set(sortedData.map((d) => d.category))]
     } else if(sort == "descending" && !sortKey && variant == "stacked"){
         let sortedData = [];
-        [...new Set(data.map((d) => d[yKey]))].forEach((category) => {
+        [...new Set(data.map((d) => d[categoryKey]))].forEach((category) => {
             sortedData.push({
                 category: category,
-                sum: d3.sum(data.filter((d) => d[yKey] == category).map((d) => d[xKey]))
+                sum: d3.sum(data.filter((d) => d[categoryKey] == category).map((d) => d[valueKey]))
             })
         })
         sortedData = sortedData.sort((a, b) => d3.descending(a.sum, b.sum))
         return [...new Set(sortedData.map((d) => d.category))]
     } else if(sort == "ascending" && !sortKey){
-        let sortedData = data.sort((a, b) => d3.ascending(a[xKey], b[xKey]))
-        return [...new Set(sortedData.map((d) => d[yKey]))]
+        let sortedData = data.sort((a, b) => d3.ascending(a[valueKey], b[valueKey]))
+        return [...new Set(sortedData.map((d) => d[categoryKey]))]
     } else if(sort == "descending" && !sortKey){
-        let sortedData = data.sort((a, b) => d3.descending(a[xKey], b[xKey]))
-        return [...new Set(sortedData.map((d) => d[yKey]))]
+        let sortedData = data.sort((a, b) => d3.descending(a[valueKey], b[valueKey]))
+        return [...new Set(sortedData.map((d) => d[categoryKey]))]
     }
     else if(sort == "ascending" && sortKey){
-        let sortedData = data.filter((d) => d[zKey] == sortKey).sort((a, b) => d3.ascending(a[xKey], b[xKey]))
-        return [...new Set(sortedData.map((d) => d[yKey]))]
+        let sortedData = data.filter((d) => d[groupKey] == sortKey).sort((a, b) => d3.ascending(a[valueKey], b[valueKey]))
+        return [...new Set(sortedData.map((d) => d[categoryKey]))]
     } else if(sort == "descending" && sortKey){
-        let sortedData = data.filter((d) => d[zKey] == sortKey).sort((a, b) => d3.descending(a[xKey], b[xKey]))
-        return [...new Set(sortedData.map((d) => d[yKey]))]
+        let sortedData = data.filter((d) => d[groupKey] == sortKey).sort((a, b) => d3.descending(a[valueKey], b[valueKey]))
+        return [...new Set(sortedData.map((d) => d[categoryKey]))]
     } else{
-        return [...new Set(data.map((d) => d[yKey]))]
+        return [...new Set(data.map((d) => d[categoryKey]))]
     }
+}
+
+export function getContinuousDomain({
+	data, 
+	xDomain = 'auto', 
+	categoryKey = 'y', 
+	valueKey = 'x', 
+	variant = 'simple'
+}){
+	if(xDomain == "auto" && variant != "stacked"){
+		if(d3.min(data, d => d[valueKey]) < 0){
+			return d3.extent(data, d => d[valueKey]);
+		} else{
+			return [0, d3.max(data, d => d[valueKey])];
+		}
+	} else if(xDomain == "auto" && variant == "stacked"){
+		const categorySums = d3.rollup(
+			data,
+			v => d3.sum(v, d => d[valueKey]),
+			d => d[categoryKey]
+		);
+		return [0, d3.max(categorySums.values())];
+	}
 }
 
 export function groupData(data, key){
@@ -53,7 +77,12 @@ export function groupData(data, key){
     return Object.fromEntries(grouped);
 }
 
-export function stackData(data, categoryKey, valueKey, categories) {
+export function stackData({
+	data, 
+	categoryKey = 'y', 
+	valueKey = 'x', 
+	categories
+}) {
     // Group data by category
     const grouped = groupData(data, categoryKey);
     
@@ -104,7 +133,45 @@ export function stackData(data, categoryKey, valueKey, categories) {
     return stackedData;
 }
 
-export function textPixelWidth(text,charPixelWidth = 7){
+export function labelPixelWidth(text){
+	const charPixelWidth = 8
 	text = text.toString()
 	return text.length * charPixelWidth
+}
+
+export function getSeriesHeight({
+	data, 
+	height, 
+	categoryKey = 'y', 
+	groupKey, 
+	variant = 'simple'
+}){
+	if(variant == "clustered"){
+		return height / ([...new Set(data.map((d) => d[categoryKey]))].length * [...new Set(data.map((d) => d[groupKey]))].length)
+	} else{
+		return height / ([...new Set(data.map((d) => d[categoryKey]))].length)
+	}
+}
+
+export function getChartHeight({
+	data, 
+	seriesHeight, 
+	categoryKey = 'y', 
+	groupKey, 
+	variant = 'simple'
+}){
+	if(variant == "clustered"){
+	    return seriesHeight * ([...new Set(data.map((d) => d[categoryKey]))].length * [...new Set(data.map((d) => d[groupKey]))].length)
+	} else{
+        seriesHeight * ([...new Set(data.map((d) => d[categoryKey]))].length)
+	}
+}
+
+export function getAxisMargin({
+	domain,
+	charPixelWidth = 8
+}){
+	let lengths = []
+	domain.forEach((d) => lengths.push(labelPixelWidth(d)))
+	return d3.max(lengths)
 }

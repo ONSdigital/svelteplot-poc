@@ -5,7 +5,23 @@
     import { extent, min, max, sum, sort, ascending, descending } from "d3-array"
     import * as d3 from 'd3';
     import { onMount } from 'svelte';
-    import { calculateCategoricalDomain, groupData, stackData, textPixelWidth } from '../js/utils';
+    import { 
+        getCategoricalDomain, 
+        getContinuousDomain, 
+        groupData, 
+        stackData, 
+        labelPixelWidth, 
+        getChartHeight, 
+        getSeriesHeight,
+        getAxisMargin 
+    } from '../js/utils';
+    import { ONScolours, ONSpalette, oldONSpalette } from '../js/colours'
+
+    let defaultColours = {
+        simple: [ONScolours.positive, ONScolours.negative],
+        clustered: oldONSpalette,
+        stacked: ONSpalette
+    }
 
 	let { 
         data, 
@@ -33,11 +49,8 @@
         seriesHeight = 34,
         hover = false,
         smGridPosition,
-        margin = {top: 0, bottom: 0, right: 20, left: 150}, 
-        colours = 
-            variant == "clustered" ?
-                ['#206095', '#27A0CC', '#871A5B', '#A8BD3A', '#F66068', '#05341A'] :
-                ['#206095','#A8BD3A','#871A5B','#F66068','#05341A','#27A0CC','#003C57','#22D0B6','#746CB1','#A09FA0'],
+        margin = {top: 0, bottom: 0, right: 20}, 
+        colours = defaultColours[variant],
         children
     } = $props();
 
@@ -62,62 +75,60 @@
         return coloursvar
     })
 
+    let domainX = $derived(getContinuousDomain({
+        data: data,
+        variant: variant,
+        categoryKey: yKey,
+        valueKey: xKey,
+        xDomain: xDomain
+    }))
 
-    let domainX = $derived.by(() => {
-        if(xDomain == "auto" && variant != "stacked"){
-            if(min(data.map((d) => d[xKey])) < 0){
-                return extent(data.map((d) => d[xKey]))
-            } else{
-                return [0, max(data.map((d) => d[xKey]))]
-            }
-        } else if(xDomain == "auto" && variant == "stacked"){
-            let maxes = []
-            let filteredData;
-            let yKeys = [...new Set(data.map((d) => d[yKey]))]
-            yKeys.forEach((category) => {
-                filteredData = data.filter((d) => d[yKey] == category)
-                maxes.push(sum(filteredData.map((d) => d[xKey])))
-            })
-            return [0, max(maxes)]
-        }
-    })
+    let chartHeight = $derived(height ? height : getChartHeight({data: data, seriesHeight: seriesHeight, cateogryKey: yKey, groupKey: zKey, variant: variant}))
 
+    let barHeight = $derived(seriesHeight ? seriesHeight : getSeriesHeight({data: data, height: height, cateogryKey: yKey, groupKey: zKey, variant: variant}))
 
-    let chartHeight = $derived(height ? height : variant == "clustered" ? 
-        seriesHeight * ([...new Set(data.map((d) => d[yKey]))].length * [...new Set(data.map((d) => d[zKey]))].length) :
-        seriesHeight * ([...new Set(data.map((d) => d[yKey]))].length))
+    let domainY = $derived(getCategoricalDomain({
+        data: data, 
+        variant: variant, 
+        sort: ySort, 
+        sortKey: zSortKey, 
+        valueKey: xKey, 
+        categoryKey: yKey, 
+        groupKey: zKey
+    }))
 
-    let barHeight = $derived(seriesHeight ? seriesHeight : variant == "clustered" ? 
-        seriesHeight = height / ([...new Set(data.map((d) => d[yKey]))].length * [...new Set(data.map((d) => d[zKey]))].length) :
-        seriesHeight = height / ([...new Set(data.map((d) => d[yKey]))].length))
+    let xScale = $derived(
+        d3.scaleLinear().range([0, width-yAxisMargin-margin.right]).domain(domainX)
+    )
 
-    let domainY = $derived(calculateCategoricalDomain(data, variant, ySort, zSortKey, xKey, yKey, zKey))
+    let yAxisMargin = $derived(margin.left ? margin.left : getAxisMargin({domain: domainY}))
 
-    let stackedLabels = $derived.by(() => {
+    let labels = $derived.by(() => {
         if(variant == "stacked"){
-            let stackedData = stackData(data, yKey, xKey, domainY)
-            stackedData.forEach((d) => d.labelWidth = textPixelWidth(d[xKey]))
+            let stackedData = stackData({data: data, categoryKey: yKey, valueKey: xKey, categories: domainY})
+            stackedData.forEach((d) => {
+                d.labelWidth = labelPixelWidth(d[xKey])
+                d.barWidth = xScale(d[xKey])
+                d.show = d.barWidth > d.labelWidth ? true : false
+                d.anchor = d[xKey] > 0 ? 'end' : 'start'
+                d.fill = '#FFFFFF'
+            })
             return stackedData
         } else{
-            return null
+            let labelData = [...data]
+            labelData.forEach((d) => {
+                d.labelWidth = labelPixelWidth(d[xKey])
+                d.show = true
+                d.anchor = xScale(d[xKey]) - d.labelWidth > 0 ? "end" : "start"
+                d.fill = d.anchor == "end" ? "#FFFFFF" : "#414042"
+            })
+            return labelData
         }
     })
 
     onMount(() => {
         d3.selectAll(".is-left").attr("text-anchor","end")
     })
-    
-    // let chartData = $derived.by(() => {
-    //     if(ySort == "ascending"){
-    //         return sort(data, (a, b) => ascending(a[xKey], b[xKey]))
-    //     } else if(ySort == "descending"){
-    //         return sort(data, (a, b) => descending(a[xKey], b[xKey]))
-    //     } else{
-    //         return data
-    //     }
-    // })
-
-    // let chartYDomain = $derived(!yDomain ? [...new Set(chartData.map((d) => d[yKey]))] : yDomain)
 
 </script>
 
@@ -136,7 +147,7 @@
 {/if}
 
 <Plot 
-    marginLeft={margin.left ? margin.left : null}
+    marginLeft={yAxisMargin}
     marginRight={margin.right ? margin.right : null}
     marginTop={margin.top ? margin.top : null}
     marginBottom={margin.bottom ? margin.bottom : null}
@@ -175,8 +186,6 @@
         y={variant == "clustered" ? zKey : yKey}
         fy={variant == "clustered" ? yKey : null}
         fx={variant == "small-multiple" ? zKey : null}
-        order={variant == "clustered" ? 'z' : null}
-        sort={!ySort ? false : ySort == "ascending" ? { channel: 'x' } : { channel: '-x' }}
         fill={variant == "stacked" || variant == "clustered" ? (d) => colourScheme[d[zKey]] : true}
     />
     {#if hover}
@@ -191,29 +200,22 @@
 
     {#if dataLabels}
         <Text
-            data={variant == "stacked" ? stackedLabels : data}
+            data={labels.filter((d) => d.show == true)}
             x={variant == "stacked" ? "stackEnd" : xKey} 
             y={variant == "clustered" ? zKey : yKey}
             fy={variant == "clustered" ? yKey : null}
             fx={variant == "small-multiple" ? zKey : null}
-            textAnchor={(d) => {
-                    if(variant == "stacked"){
-                        return d[xKey] > 0 ? "end" : "start"
-                    } else{
-                        return d[xKey] < domainX[1]*0.2 ? "start" : "end"
-                    }
-                }
-            }
+            textAnchor={(d) => d.anchor}
             dx={(d) => {
                 if(variant == "stacked"){
                     return -4
                 } else{
-                    return d[xKey] < domainX[1]*0.2 ? 4 : -4}
+                    return d.anchor == 'end' ? -4 : 4}
                 }
             }
             text={(d) => dataLabels.format ? format(dataLabels.format)(d[xKey]) : xFormat ? format(xFormat)(d[xKey]) : d[xKey]}
             textClass="dataLabel"
-            fill={"#FFFFFF"}
+            fill={(d) => d.fill}
         />
     {/if}
     {#if children}
