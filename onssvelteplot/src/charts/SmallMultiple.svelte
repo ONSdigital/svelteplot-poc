@@ -7,6 +7,7 @@
     let {
         props,
         data,
+        size,
         width,
         margin = {left: 160, right: 10, top: 0, bottom: 0},
         chartEvery = 3,

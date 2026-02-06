@@ -2,7 +2,7 @@
   import BarChart from "./BarChart.svelte";
   import SmallMultiple from "./SmallMultiple.svelte";
   import '././shared/style.css';
-  import { groupData } from '../js/utils';
+  import { groupData, getScreenSize } from '../js/utils';
 
 
   import * as d3 from 'd3';
@@ -16,6 +16,8 @@
 
   let width = $state()
 
+  let size = $derived(getScreenSize(width))
+
   const directions = ["left", "right", "top", "bottom"];
   const regex = /^\[(?:'[^']*'|"[^"]*"|\d+(?:\.\d+)?)(,?)*]$/;//this regex looks for an array
 
@@ -27,7 +29,24 @@
       "type", "chartType", ...directions.map(dir => `padding-${dir}`)
     ].includes(key));
     keys.forEach(key => {
-      if(regex.test(section[key])){//this test if the string looks like an array
+      if(Array.isArray(section[key])){
+        let sizes = ['sm:','md:','lg:']
+        const sizeMatch = sizes.some(substring => 
+          section[key].some(item => item.toString().includes(substring))
+        )
+        if(sizeMatch){
+          let propObject = {};
+          section[key].forEach((str) => {
+            const matchedSize = sizes.find(substring => str.includes(substring)).replace(":","")
+            const value = str.replace(matchedSize,"").replace(":","")
+            propObject[matchedSize] = !isNaN(value) ? Number(value): value
+          })
+          props[key] = propObject
+        } else {
+          props[key] = section[key]
+        }
+      }
+      else if(regex.test(section[key])){//this test if the string looks like an array
         props[key]=JSON.parse(section[key])//if it's an array, parse as an array
       }else{
         props[key]= section[key]
@@ -53,7 +72,25 @@
     return props;
   }
 
-  let props = $derived.by(() => {return makeProps(type, data, options, section) })
+  let config = $derived.by(() => {return makeProps(type, data, options, section) })
+
+  // Derived state that creates props based on globalProps and size
+  let props = $derived(
+    Object.entries(config).reduce((acc, [key, value]) => {
+      // Check if value is an object with size-specific settings
+      if (value && typeof value === 'object' && !Array.isArray(value) && 
+          (value.sm !== undefined || value.md !== undefined || value.lg !== undefined)) {
+        // It's a size-specific object, get the value for current size
+        acc[key] = value[size];
+      } else {
+        // It's a regular value, pass it through
+        acc[key] = value;
+      }
+      return acc;
+    }, {})
+  );
+
+  $inspect(props)
 
   let smData = $derived.by(() => {
       if(props.smKey){
@@ -69,13 +106,13 @@
 {#if props}
   {#if props.smKey}
     <div class="chart-container" bind:clientWidth={width}>
-      <SmallMultiple {props} data={smData} {width} {type}/>
+      <SmallMultiple {props} data={smData} {width} {type} chartEvery={props.chartEvery}/>
     </div>
   {:else}
     {#key props.data}
     <div class="chart-container" bind:clientWidth={width}>
       {#if type.toLowerCase() === "bar"}
-        <BarChart {width} {...props}/>
+        <BarChart {width} {size} {...props}/>
       {/if}
     </div>
     {/key}
