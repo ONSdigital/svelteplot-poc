@@ -175,3 +175,15 @@ export function getAxisMargin({
 	domain.forEach((d) => lengths.push(labelPixelWidth(d)))
 	return d3.max(lengths)
 }
+
+export function getScreenSize(width){
+	const mobileBreakpoint = 510;
+	const mediumBreakpoint = 600;
+	if(width < mobileBreakpoint){
+		return 'sm'
+	} else if(width < mediumBreakpoint){
+		return 'md'
+	} else{
+		return 'lg'
+	}
+}

@@ -36,6 +36,7 @@ else
         prop.ySort descending
         prop.xFormat ,.0f
         prop.dataLabels true
+        prop.zKey z
 
     section#chart-bar.Chart
         prop.chartType bar
@@ -44,6 +45,7 @@ else
         prop.ySort ascending
         prop.xFormat ,.0f
         prop.dataLabels true
+        prop.zKey z
 
     section#chart-bar.Chart
         prop.chartType bar
@@ -51,5 +53,6 @@ else
         prop.data= places.filterBy("parentcd", place.parentcd).toData({y: "areanm", x: ["p2018", "p2019", "p2020"], z: ["Population in 2018", "Population in 2019", "Population in 2020"]})
         prop.ySort ascending
         prop.smKey z
+        prop.chartEvery sm: 1|md: 2|lg: 3
         prop.xFormat ,.0f
         prop.dataLabels true

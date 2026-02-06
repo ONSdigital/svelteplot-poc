@@ -25,6 +25,7 @@
 
 	let { 
         data, 
+        size,
         width,
         variant = "simple",
         smGridPosition,
