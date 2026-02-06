@@ -72,11 +72,11 @@
     return props;
   }
 
-  let globalProps = $derived.by(() => {return makeProps(type, data, options, section) })
+  let config = $derived.by(() => {return makeProps(type, data, options, section) })
 
   // Derived state that creates props based on globalProps and size
   let props = $derived(
-    Object.entries(globalProps).reduce((acc, [key, value]) => {
+    Object.entries(config).reduce((acc, [key, value]) => {
       // Check if value is an object with size-specific settings
       if (value && typeof value === 'object' && !Array.isArray(value) && 
           (value.sm !== undefined || value.md !== undefined || value.lg !== undefined)) {
