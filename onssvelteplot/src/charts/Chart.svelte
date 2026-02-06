@@ -72,7 +72,23 @@
     return props;
   }
 
-  let props = $derived.by(() => {return makeProps(type, data, options, section) })
+  let globalProps = $derived.by(() => {return makeProps(type, data, options, section) })
+
+  // Derived state that creates props based on globalProps and size
+  let props = $derived(
+    Object.entries(globalProps).reduce((acc, [key, value]) => {
+      // Check if value is an object with size-specific settings
+      if (value && typeof value === 'object' && !Array.isArray(value) && 
+          (value.sm !== undefined || value.md !== undefined || value.lg !== undefined)) {
+        // It's a size-specific object, get the value for current size
+        acc[key] = value[size];
+      } else {
+        // It's a regular value, pass it through
+        acc[key] = value;
+      }
+      return acc;
+    }, {})
+  );
 
   $inspect(props)
 
@@ -90,7 +106,7 @@
 {#if props}
   {#if props.smKey}
     <div class="chart-container" bind:clientWidth={width}>
-      <SmallMultiple {props} data={smData} {width} {type} {size}/>
+      <SmallMultiple {props} data={smData} {width} {type} chartEvery={props.chartEvery}/>
     </div>
   {:else}
     {#key props.data}
