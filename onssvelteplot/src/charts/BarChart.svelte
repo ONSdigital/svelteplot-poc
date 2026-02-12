@@ -28,6 +28,7 @@
         size,
         width,
         variant = "simple",
+        highlighted,
         smGridPosition,
         smKey,
         xKey = "x", 
@@ -172,13 +173,17 @@
     }}
 >
     <GridX/>
+    <AxisY
+        tickClass={(d) => d == highlighted ? "bold" : null}
+    />
     <BarX 
         data={data}
         x={xKey} 
         y={variant == "clustered" ? zKey : yKey}
         fy={variant == "clustered" ? yKey : null}
         fx={variant == "small-multiple" ? zKey : null}
-        fill={variant == "stacked" || variant == "clustered" ? (d) => colourScheme[d[zKey]] : true}
+        fill={(d) => variant == "stacked" || variant == "clustered" ? colourScheme[d[zKey]] : 
+            d[yKey] == highlighted ? colours[0] : highlighted ? ONScolours.grey50 : colours[0]}
     />
     {#if hover}
         <Pointer

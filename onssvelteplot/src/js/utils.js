@@ -134,7 +134,7 @@ export function stackData({
 }
 
 export function labelPixelWidth(text){
-	const charPixelWidth = 8
+	const charPixelWidth = 10
 	text = text.toString()
 	return text.length * charPixelWidth
 }

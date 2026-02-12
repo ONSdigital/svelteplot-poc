@@ -29,8 +29,6 @@
         {left: chartGap, right: margin.right, top: margin.top, bottom: margin.bottom}
     ])
 
-    $inspect(data)
-
     let categories = $derived(props.zKey && props.variant != "simple" ? new Set(data[Object.keys(data)[0]].map((d) => d[props.zKey])) : null)
 
     let colours = $derived(props.colours ? props.colours : defaultColours[props.variant])
@@ -51,8 +49,6 @@
         }
         return coloursvar
     })
-
-    $inspect(itemWidth && props.variant != "simple" ? itemWidth : null)
 
     let domainY = $derived(type == 'bar' && !yDomain ? getCategoricalDomain({
         data: data[Object.keys(data)[0]], 

@@ -90,8 +90,6 @@
     }, {})
   );
 
-  $inspect(props)
-
   let smData = $derived.by(() => {
       if(props.smKey){
         return groupData(props.data, props.smKey)

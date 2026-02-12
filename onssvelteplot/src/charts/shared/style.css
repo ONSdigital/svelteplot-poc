@@ -76,6 +76,10 @@ text{
   font-size: 14px;
 }
 
+.bold{
+  font-weight: 600;
+}
+
 @media (max-width: 400px) {
   #legend {
     flex-flow: column;
