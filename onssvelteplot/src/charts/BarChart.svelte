@@ -2,7 +2,6 @@
     import { Plot, GridX, BarX, AxisX, AxisY, Text, RuleX, Pointer, stackX } from 'svelteplot';
     import { format } from "d3-format";
     import { timeParse, timeFormat} from "d3-time-format"
-    import { extent, min, max, sum, sort, ascending, descending } from "d3-array"
     import * as d3 from 'd3';
     import { onMount } from 'svelte';
     import { 
@@ -16,6 +15,7 @@
         getAxisMargin 
     } from '../js/utils';
     import { ONScolours, ONSpalette, oldONSpalette } from '../js/colours'
+    import Legend from "./shared/Legend.svelte"
 
     let defaultColours = {
         simple: [ONScolours.positive, ONScolours.negative],
@@ -134,18 +134,8 @@
 
 </script>
 
-{#if categories}
-    <div id="legend">
-        {#each categories as legendItem, i}
-            <div class="legend--item">
-                <div
-                    class="legend--icon--circle"
-                    style:background-color={colourScheme[legendItem]}
-                />
-                <p class="legend--text">{legendItem}</p>
-            </div>
-        {/each}
-    </div>
+{#if categories && !smKey}
+    <Legend {categories} {colourScheme}/>
 {/if}
 
 <Plot 
