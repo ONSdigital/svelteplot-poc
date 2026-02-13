@@ -1,5 +1,5 @@
 <script>
-    import { Plot, GridX, BarX, AxisX, AxisY, Text, RuleX, Pointer, stackX } from 'svelteplot';
+    import { Plot, GridX, BarX, AxisX, AxisY, Text, RuleX, Pointer, stackX, RectX } from 'svelteplot';
     import { format } from "d3-format";
     import { timeParse, timeFormat} from "d3-time-format"
     import * as d3 from 'd3';
@@ -173,6 +173,19 @@
         tickFormat: (d) => smGridPosition > 0 ? "" : yFormatDate ? timeFormat(yFormat)(timeParse(yFormatDate)(d)) : yFormat ? format(yFormat)(d) : d
     }}
 >
+    {#if highlighted && variant != 'simple'}
+        <RectX data={data.filter((d) => d[yKey] == highlighted)}
+            y1={variant == "clustered" ? null : yKey}
+            y2={variant == "clustered" ? null : yKey}
+            fy={variant == "clustered" ? yKey : null}
+            insetTop={-2}
+            insetBottom={-2}
+            insetLeft={-yAxisMargin}
+            fill={ONScolours.grey20}
+            stroke={ONScolours.grey60}
+            class={"opaque"}
+        />
+    {/if}
     <AxisY tickClass={(d) => d == highlighted ? "bold" : null}/>
     <AxisX tickCount={xAxisTicks}/>
     <BarX 
@@ -193,10 +206,20 @@
                 colour = colours[0]
             }
 
-            if(variant != 'simple' && highlighted && d[yKey] != highlighted){
-                colour = colour + "50"
-            }
+            // if(variant != 'simple' && highlighted && d[yKey] != highlighted){
+            //     colour = colour + "C7"
+            // }
             return colour
+        }}
+        stroke={(d) => {
+            if(highlighted && variant != 'simple' && d[yKey] == highlighted){
+                return ONScolours.grey100
+            }
+        }}
+        strokeWidth={(d) => {
+            if(highlighted && variant != 'simple' && d[yKey] == highlighted){
+                return 2
+            }
         }}
     />
     {#if hover}
