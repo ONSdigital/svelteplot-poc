@@ -38,6 +38,7 @@ else
         prop.xFormat ,.0f
         prop.dataLabels true
         prop.zKey z
+        prop.highlighted= place.areanm
 
     section#chart-bar.Chart
         prop.chartType bar
@@ -45,8 +46,9 @@ else
         prop.data= places.filterBy("parentcd", place.parentcd).toData({y: "areanm", x: ["p2018", "p2019", "p2020"], z: ["2018", "2019", "2020"]})
         prop.ySort ascending
         prop.xFormat ,.0f
-        prop.dataLabels true
         prop.zKey z
+        prop.highlighted= place.areanm
+        prop.xAxisTicks= 3
 
     section#chart-bar.Chart
         prop.chartType bar
@@ -57,6 +59,7 @@ else
         prop.chartEvery sm: 1|md: 2|lg: 3
         prop.xFormat ,.0f
         prop.dataLabels true
+        prop.highlighted= place.areanm
 
     section#chart-bar.Chart
         prop.chartType bar
@@ -64,6 +67,6 @@ else
         prop.data= places.filterBy("parentcd", place.parentcd).toData({y: "areanm", x: ["under162019","over162019","over652019","under162020","over162020","over652020"], z: ["Under 16", "16-64", "65 and over", "Under 16", "16-64", "65 and over"], w: ["Population in 2019", "Population in 2019", "Population in 2019", "Population in 2020", "Population in 2020", "Population in 2020"]})
         prop.ySort ascending
         prop.smKey w
-        prop.chartEvery 2
+        prop.chartEvery sm: 1|md: 2|lg: 2
         prop.xFormat ,.0f
-        prop.dataLabels true
+        prop.highlighted= place.areanm

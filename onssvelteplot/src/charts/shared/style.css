@@ -80,6 +80,10 @@ text{
   font-weight: 600;
 }
 
+.opaque{
+  opacity: 0.5;
+}
+
 @media (max-width: 400px) {
   #legend {
     flex-flow: column;
