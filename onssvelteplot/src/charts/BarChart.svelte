@@ -1,5 +1,5 @@
 <script>
-    import { Plot, GridX, BarX, AxisX, AxisY, Text, RuleX, Pointer, stackX } from 'svelteplot';
+    import { Plot, GridX, BarX, AxisX, AxisY, Text, RuleX, Pointer, stackX, RectX } from 'svelteplot';
     import { format } from "d3-format";
     import { timeParse, timeFormat} from "d3-time-format"
     import * as d3 from 'd3';
@@ -28,7 +28,7 @@
         size,
         width,
         variant = "simple",
-        highlighted,
+        highlighted = null,
         smGridPosition,
         smKey,
         xKey = "x", 
@@ -157,6 +157,7 @@
         domain: domainX, 
         label:xAxisLabel ? xAxisLabel : "",
         tickFormat: (d) => xFormatDate ? timeFormat(xFormat)(timeParse(xFormatDate)(d)) : xFormat ? format(xFormat)(d) : d,
+        grid: true
     }}
     color={{ 
         // legend: variant == "clustered" || variant == "stacked" ? true : false,
@@ -172,18 +173,54 @@
         tickFormat: (d) => smGridPosition > 0 ? "" : yFormatDate ? timeFormat(yFormat)(timeParse(yFormatDate)(d)) : yFormat ? format(yFormat)(d) : d
     }}
 >
-    <GridX/>
-    <AxisY
-        tickClass={(d) => d == highlighted ? "bold" : null}
-    />
+    {#if highlighted && variant != 'simple'}
+        <RectX data={data.filter((d) => d[yKey] == highlighted)}
+            y1={variant == "clustered" ? null : yKey}
+            y2={variant == "clustered" ? null : yKey}
+            fy={variant == "clustered" ? yKey : null}
+            insetTop={-2}
+            insetBottom={-2}
+            insetLeft={-yAxisMargin}
+            fill={ONScolours.grey20}
+            stroke={ONScolours.grey60}
+            class={"opaque"}
+        />
+    {/if}
+    <AxisY tickClass={(d) => d == highlighted ? "bold" : null}/>
+    <AxisX tickCount={xAxisTicks}/>
     <BarX 
         data={data}
         x={xKey} 
         y={variant == "clustered" ? zKey : yKey}
         fy={variant == "clustered" ? yKey : null}
         fx={variant == "small-multiple" ? zKey : null}
-        fill={(d) => variant == "stacked" || variant == "clustered" ? colourScheme[d[zKey]] : 
-            d[yKey] == highlighted ? colours[0] : highlighted ? ONScolours.grey50 : colours[0]}
+        fill={(d) => {
+            let colour;
+            if(variant == "stacked" || variant == "clustered"){
+                colour = colourScheme[d[zKey]]
+            } else if(d[yKey] == highlighted){
+                colour = colours[0]
+            } else if(highlighted){
+                colour = ONScolours.grey50
+            } else{ 
+                colour = colours[0]
+            }
+
+            // if(variant != 'simple' && highlighted && d[yKey] != highlighted){
+            //     colour = colour + "C7"
+            // }
+            return colour
+        }}
+        stroke={(d) => {
+            if(highlighted && variant != 'simple' && d[yKey] == highlighted){
+                return ONScolours.grey100
+            }
+        }}
+        strokeWidth={(d) => {
+            if(highlighted && variant != 'simple' && d[yKey] == highlighted){
+                return 2
+            }
+        }}
     />
     {#if hover}
         <Pointer
