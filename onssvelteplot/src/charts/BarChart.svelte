@@ -90,7 +90,7 @@
 
     let barHeight = $derived(seriesHeight ? seriesHeight : getSeriesHeight({data: data, height: height, cateogryKey: yKey, groupKey: zKey, variant: variant}))
 
-    let domainY = $derived(getCategoricalDomain({
+    let domainY = $derived(yDomain ? yDomain : getCategoricalDomain({
         data: data, 
         variant: variant, 
         sort: ySort, 
@@ -182,7 +182,7 @@
             insetBottom={-2}
             insetLeft={-yAxisMargin}
             fill={ONScolours.grey20}
-            stroke={ONScolours.grey60}
+            
             class={"opaque"}
         />
     {/if}

@@ -1,5 +1,7 @@
 <script>
   import BarChart from "./BarChart.svelte";
+  import LineChart from "./LineChart.svelte"
+  import DotChart from "./DotChart.svelte"
   import SmallMultiple from "./SmallMultiple.svelte";
   import '././shared/style.css';
   import { groupData, getScreenSize } from '../js/utils';
@@ -111,6 +113,10 @@
     <div class="chart-container" bind:clientWidth={width}>
       {#if type.toLowerCase() === "bar"}
         <BarChart {width} {size} {...props}/>
+      {:else if type.toLowerCase() === "line"}
+        <LineChart {width} {size} {...props}/>
+      {:else if type.toLowerCase() === "dot"}
+        <DotChart {width} {size} {...props}/>
       {/if}
     </div>
     {/key}

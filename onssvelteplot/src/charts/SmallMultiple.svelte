@@ -1,6 +1,8 @@
 <script>
 
     import BarChart from "./BarChart.svelte";
+    import LineChart from "./LineChart.svelte";
+    import DotChart from "./DotChart.svelte";
     import Legend from "./shared/Legend.svelte";
 
     import { getCategoricalDomain } from '../js/utils';
@@ -50,7 +52,7 @@
         return coloursvar
     })
 
-    let domainY = $derived(type == 'bar' && !yDomain ? getCategoricalDomain({
+    let domainY = $derived(type == 'bar' && !props.yDomain ? getCategoricalDomain({
         data: data[Object.keys(data)[0]], 
         variant: props.variant, 
         sort: props.ySort, 
@@ -59,6 +61,8 @@
         categoryKey: props.yKey, 
         groupKey: props.zKey
     }) : null)
+
+    $inspect(domainY)
 
 </script>
 
@@ -78,7 +82,25 @@
                     margin={i % chartEvery == 0 ? smMargin[0]: smMargin[1]}
                     yDomain={domainY}
                     smGridPosition = {i % chartEvery}
-                    />
+                />
+            {:else if type.toLowerCase() === "line"}
+                <LineChart 
+                    width={i % chartEvery == 0 ? itemWidth + margin.left : i % chartEvery == chartEvery ? itemWidth + chartGap + margin.right : itemWidth + chartGap}
+                    {...props} 
+                    data={data[group]}
+                    margin={i % chartEvery == 0 ? smMargin[0]: smMargin[1]}
+                    yDomain={domainY}
+                    smGridPosition = {i % chartEvery}
+                />
+            {:else if type.toLowerCase() === "dot"}
+                <DotChart 
+                    width={i % chartEvery == 0 ? itemWidth + margin.left : i % chartEvery == chartEvery ? itemWidth + chartGap + margin.right : itemWidth + chartGap}
+                    {...props} 
+                    data={data[group]}
+                    margin={i % chartEvery == 0 ? smMargin[0]: smMargin[1]}
+                    yDomain={domainY}
+                    smGridPosition = {i % chartEvery}
+                />
             {/if}
         </div>
     {/each}
