@@ -21,6 +21,9 @@
     data, 
     width,
     variant = "simple",
+    highlighted = null,
+    smGridPosition,
+    smKey,
     xKey = "x", 
     yKey = "y",
     zKey = Object.keys(data[0]).includes('z') && smKey != 'z' ? 'z' : null,
@@ -90,7 +93,7 @@
 
 </script>
 
-{#if categories}
+{#if categories && !smKey}
     <Legend {categories} {colourScheme}/>
 {/if}
 
@@ -107,7 +110,7 @@
         tickSpacing: 20, 
         label: yAxisLabel ? yAxisLabel : "",
         grid: true,
-        tickFormat: (d) => yFormat ? format(yFormat)(d) : d
+         tickFormat: (d) => variant == "clustered" || smGridPosition > 0 ? "" : yFormat ? format(yFormat)(d) : d
     }}
     x={{ 
         domain: domainX, 
@@ -117,7 +120,17 @@
     }}
     color={{ 
         scheme: colours
-    }}>
+    }}
+     fy={{
+        axis: 'left',
+        labelAnchor: 'bottom',
+        domain: variant == "clustered" ? domainY : null,
+        axisOptions: {
+            dx: -5
+        },
+        tickFormat: (d) => smGridPosition > 0 ? "" : yFormat ? format(yFormat)(d) : d
+    }}
+    >
 
     <Dot
         data={data}
