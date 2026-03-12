@@ -244,12 +244,24 @@
         onpointerenter={(evt, d) => {
             if(tooltip) {
                 clearTimeout(leaveTimeout);
-                tooltipData = {x: evt.layerX, y: evt.layerY, dotx: evt.dataX, doty: evt.dataY, data: d}
+                tooltipData = {x: evt.layerX, y: evt.layerY, data: d}
+
+                d3.select(plotEl).selectAll(".point-highlight").remove();
+                  // Select all matching elements and clone them as highlights
+                d3.select(plotEl).selectAll('.'+d.code)
+                    .clone(true)
+                    .attr("class", "point-highlight")
+                    .attr("fill", "none")
+                    .style("pointer-events", "none")
+                    .style("stroke", ONScolours.grey100)
+                    .style("stroke-width", 4)
+                    .raise();
             }
         }}
         onpointerleave={() => {
             if(tooltip){
                 leaveTimeout = setTimeout(() => {
+                    d3.select(plotEl).selectAll(".point-highlight").remove();
                     tooltipData = null
                 }, 300)
             }
@@ -273,18 +285,6 @@
             </div>
         {/if}
     {/snippet}
-
-    {#if tooltipData}
-            <Dot
-                x={tooltipData.data.binX}
-                y={tooltipData.doty}
-                fy={tooltipData.data[yKey]}
-                r={radius}
-                fill-opacity={0}
-                stroke={ONScolours.grey100}
-                strokeWidth={3}
-            />
-    {/if}
 
     {#if children}
         {@render children()}
