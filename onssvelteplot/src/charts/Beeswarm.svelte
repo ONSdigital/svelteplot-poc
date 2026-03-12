@@ -1,5 +1,5 @@
 <script>
-    import { Plot, Dot, AxisY } from 'svelteplot';
+    import { Plot, Dot, Text } from 'svelteplot';
     import { format } from "d3-format";
     import { timeParse, timeFormat} from "d3-time-format"
     import * as d3 from 'd3';
@@ -46,8 +46,10 @@
         dataLabels,
         tooltip,
         height,
-        seriesHeight = 200,
-        radius = 3,
+        seriesHeight = 220,
+        radius = 4,
+        padding = -2,
+        numberBins = 75,
         hover = false,
         margin = {top: 0, bottom: 0, right: 20, left: 20}, 
         colours = defaultColours,
@@ -56,21 +58,21 @@
 
     let hovered = $state();
 
+    let plotEl = $state();
+
     let categories = $derived(yKey ? new Set(data.map((d) => d[yKey])) : null)
 
-    let colourScheme = $derived.by(() => {
+    let colourLookup = $derived.by(() => {
         let coloursvar;
-        if(categories){
+        if(colours.length > 1){
             coloursvar = {}
             let i = 0
             categories.forEach((category) => {
                 coloursvar[category] = colours[i]
                 i = i+1
             })
-        } else if(colours.length > 1){
-            coloursvar = colours[0]
         } else{
-            coloursvar = colours
+            coloursvar = null
         }
         return coloursvar
     })
@@ -97,28 +99,68 @@
         groupKey: zKey
     }))
 
-    $inspect(domainY)
-
     let yAxisMargin = $derived(margin.left ? margin.left : getAxisMargin({domain: domainY}))
 
+    let bins = $derived.by(() => {
+        if(variant == 'force'){
+            return null
+        } else{
+            let binSize = Math.abs(domainX[1] - domainX[0])/numberBins
+            console.log(binSize)
+            let binsArr = []
+            for(let i = 0; i < numberBins; i++){
+                binsArr.push(domainX[0] + (i * binSize))
+            }
+            return binsArr;
+        }
+    })
+
+    let dodgeY = $derived.by(() => {
+        if(variant == 'binned' || variant == 'binned-diverging'){
+            return 'bottom'
+        } else{
+            return 'middle'
+        }
+    })
+
     let dots = $derived.by(() => {
+        const binSize = bins ? Math.abs(domainX[1] - domainX[0]) / numberBins : null
         let derivedData = []
         data.forEach((d) => {
-            derivedData.push({...d, r: d[zKey] == highlighted ? 1 : 0})
+            let binX = null
+            if (bins && binSize) {
+                const binIndex = Math.min(
+                    Math.floor((d[xKey] - domainX[0]) / binSize),
+                    numberBins - 1
+                )
+                binX = bins[binIndex] + binSize / 2
+            }
+            derivedData.push({...d, r: d[zKey] == highlighted ? 1 : 0, binX})
         })
         return derivedData
     })
 
-    // onMount(() => {
-    //     d3.selectAll(".is-left").attr("text-anchor","start")
-    // })
+    $effect(() => {
+        if (dots && plotEl){
+            d3.select(plotEl).selectAll('.axis-y').attr('display','none')
+        }
+    })
+
+    $effect(() => {
+        if(highlighted){
+            setTimeout(() => {
+                d3.select(plotEl).selectAll(".highlighted").raise()
+            }, 100);
+        }
+    })
 
 </script>
 
-{#if categories && !smKey && colours.length > 1}
-    <Legend {categories} {colourScheme}/>
-{/if}
+<!-- {#if categories && !smKey && colourLookup}
+    <Legend {categories} {colourLookup}/>
+{/if} -->
 
+<div bind:this={plotEl}>
 <Plot 
     marginLeft={yAxisMargin}
     marginRight={margin.right ? margin.right : null}
@@ -130,10 +172,11 @@
         domain: null,
     }}
     fy={{ 
-        axis: 'left',
+        axis: null,
         domain: domainY ? domainY : null, 
         tickSpacing: 10, 
-        label: yAxisLabel ? yAxisLabel : "",
+        ticks: []
+        // tickFormat: () => ""
     }} 
     x={{ 
         domain: domainX, 
@@ -142,7 +185,7 @@
         grid: true
     }}
     r={{
-        range: highlighted ? [radius, radius+3] : [radius, radius],
+        range: highlighted ? [radius, radius+2] : [radius, radius],
         domain: [0,1]
     }}
     color={{ 
@@ -150,23 +193,33 @@
         scheme: colours
     }}
 >
+    {#each categories as category}
+        <Text
+            x={domainX[0]}
+            dy={-(seriesHeight/2) + 20}
+            fy={category}
+            textAnchor='start'
+            text={category}
+        />
+    {/each}
     <Dot
         data={dots}
-        x={xKey}
+        x={variant == 'force' ? xKey : 'binX'}
         y={0}
         fy={yKey}
+        dotClass={(d) => d[zKey] == highlighted ? 'highlighted' : ''}
         r="r"
-        dodgeY={{ anchor: variant == 'binned' ? 'bottom' : 'middle', padding: 0 }}
+        dodgeY={{ anchor: dodgeY, padding: padding}}
         fill={(d) => {
             let colour;
-            if(categories.length > 1){
-                colour = colourScheme[d[yKey]]
-            } else if(d[zKey] == highlighted){
+            if(d[zKey] == highlighted){
                 colour = ONScolours.highlightOrange
-            } else if(highlighted){
-                colour = colours[0]
-            } else{ 
-                colour = colours[0]
+            } else{
+                if(colourLookup){
+                    colour = colourLookup[d[yKey]]
+                } else{
+                    colour = colours[0]
+                }
             }
             return colour
         }} 
@@ -184,12 +237,13 @@
                 return 1
             }
         }}
-        />
+    />
 
     {#if children}
         {@render children()}
     {/if}
 </Plot>
+</div>
 
 <style>
     :global(.dot path){
