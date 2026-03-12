@@ -1,5 +1,5 @@
 <script>
-    import { Plot, Dot, RectX, AxisX, AxisY } from 'svelteplot';
+    import { Plot, Dot, RectX, AxisX, AxisY, GridX } from 'svelteplot';
     import { format } from "d3-format";
     import * as d3 from 'd3';
     import { onMount } from 'svelte';
@@ -9,11 +9,11 @@
             getChartHeight, 
             getAxisMargin 
         } from '../js/utils';
-    import { ONScolours, ONSpalette } from '../js/colours';
+    import { oldONSpalette, ONScolours, ONSpalette } from '../js/colours';
     import Legend from "./shared/Legend.svelte";
 
     let defaultColours = {
-        simple: ONSpalette,
+        simple: oldONSpalette,
         comparison: [ONScolours.previous, ONScolours.current]
     }//uses the standard colour palette or time comparison colours
 
@@ -87,6 +87,22 @@
         return coloursvar
     });
 
+    let symbols = ['circle', 'diamond2', 'square'];
+
+    let symbolScheme = $derived.by(() => {
+        let symbolsvar = {};
+        if(categories){
+            let i = 0;
+            categories.forEach((category) => {
+                symbolsvar[category] = symbols[i % symbols.length];
+                i = i + 1;
+            });
+        } else {
+            symbolsvar = symbols[0];
+        }
+        return symbolsvar;
+    });
+
     onMount(() => {
         d3.selectAll(".is-left").attr("text-anchor","end")
     });
@@ -107,7 +123,7 @@
      y={{ 
         axis: 'left',
         domain: domainY, 
-        tickSpacing: 20, 
+        tickSpacing: 20,
         label: yAxisLabel ? yAxisLabel : "",
         grid: true,
          tickFormat: (d) => variant == "clustered" || smGridPosition > 0 ? "" : yFormat ? format(yFormat)(d) : d
@@ -145,7 +161,14 @@
         />
     {/if}
     <AxisY tickClass={(d) => d == highlighted ? "bold" : null}/>
-    <AxisX tickCount={xAxisTicks}/>
+    
+    <AxisX
+        tickCount={xAxisTicks}
+        tickClass={(d) =>
+            d === 0 ? 'zero' : 'horizontal'}/>
+    <GridX 
+        strokeDasharray={(d) => d != 0 ? "2,2" : null}
+        ></GridX>
 
     <Dot
         data={data}
@@ -164,5 +187,10 @@
             return colour
         }}
         y={yKey}
-        r={+radius}/>
+        r={+radius}
+        symbol={(d) => symbolScheme[d[zKey]]}/>
 </Plot>
+
+<style>
+
+</style>
