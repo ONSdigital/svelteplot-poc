@@ -89,6 +89,10 @@ text{
   fill: "#707071" !important;
 }
 
+  :global(.highlighted path) {
+      filter: url(#highlight-ring);
+  }
+
 @media (max-width: 400px) {
   #legend {
     flex-flow: column;

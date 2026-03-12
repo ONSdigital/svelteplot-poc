@@ -1,5 +1,5 @@
 <script>
-    import { Plot, Dot, Text } from 'svelteplot';
+    import { Plot, Dot, Text, RectX, HTMLTooltip } from 'svelteplot';
     import { format } from "d3-format";
     import { timeParse, timeFormat} from "d3-time-format"
     import * as d3 from 'd3';
@@ -46,9 +46,9 @@
         dataLabels,
         tooltip,
         height,
-        seriesHeight = 220,
+        seriesHeight = 200,
         radius = 4,
-        padding = -2,
+        padding = -3.5,
         numberBins = 75,
         hover = false,
         margin = {top: 0, bottom: 0, right: 20, left: 20}, 
@@ -160,7 +160,9 @@
     <Legend {categories} {colourLookup}/>
 {/if} -->
 
+
 <div bind:this={plotEl}>
+
 <Plot 
     marginLeft={yAxisMargin}
     marginRight={margin.right ? margin.right : null}
@@ -194,9 +196,20 @@
     }}
 >
     {#each categories as category}
+        <RectX
+            y1={0}
+            y2={seriesHeight}
+            fy={category}
+            insetTop={-2}
+            insetBottom={-2}
+            insetLeft={-margin.left}
+            insetRight={-margin.right}
+            fill={ONScolours.grey20}
+            opacity={0.25}
+        />
         <Text
             x={domainX[0]}
-            dy={-(seriesHeight/2) + 20}
+            dy={-(seriesHeight/2) + 25}
             fy={category}
             textAnchor='start'
             text={category}
@@ -208,31 +221,21 @@
         y={0}
         fy={yKey}
         dotClass={(d) => d[zKey] == highlighted ? 'highlighted' : ''}
-        r="r"
+        r={radius}
         dodgeY={{ anchor: dodgeY, padding: padding}}
         fill={(d) => {
             let colour;
-            if(d[zKey] == highlighted){
-                colour = ONScolours.highlightOrange
+            if(colourLookup){
+                colour = colourLookup[d[yKey]]
             } else{
-                if(colourLookup){
-                    colour = colourLookup[d[yKey]]
-                } else{
-                    colour = colours[0]
-                }
+                colour = colours[0]
             }
             return colour
         }} 
-        stroke={(d) => {
-            if(highlighted && d[zKey] == highlighted){
-                return ONScolours.grey100
-            } else{
-                return ONScolours.white
-            }
-        }}
+        stroke={(d) => d[zKey] == highlighted ? ONScolours.highlightOrange : ONScolours.white}
         strokeWidth={(d) => {
             if(highlighted && d[zKey] == highlighted){
-                return 2
+                return 8
             } else{
                 return 1
             }
