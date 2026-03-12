@@ -1,5 +1,5 @@
 <script>
-    import { Plot, Dot } from 'svelteplot';
+    import { Plot, Dot, RectX, AxisX, AxisY } from 'svelteplot';
     import { format } from "d3-format";
     import * as d3 from 'd3';
     import { onMount } from 'svelte';
@@ -131,6 +131,21 @@
         tickFormat: (d) => smGridPosition > 0 ? "" : yFormat ? format(yFormat)(d) : d
     }}
     >
+
+    {#if highlighted}
+        <RectX data={data.filter((d) => d[yKey] == highlighted)}
+            y1={yKey}
+            y2={yKey}
+            fy={yKey}
+            insetTop={-8}
+            insetBottom={-10}
+            insetLeft={-yAxisMargin}
+            fill={ONScolours.grey20}
+            class={"opaque"}
+        />
+    {/if}
+    <AxisY tickClass={(d) => d == highlighted ? "bold" : null}/>
+    <AxisX tickCount={xAxisTicks}/>
 
     <Dot
         data={data}
