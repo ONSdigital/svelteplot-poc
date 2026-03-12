@@ -1,12 +1,16 @@
 <script>
-    import { Plot } from 'svelteplot';
+    import { Plot, GridX, GridY, BarX, AxisX, AxisY, Text, RuleX, Pointer, stackX, RectX, Dot } from 'svelteplot';
     import { format } from "d3-format";
     import * as d3 from 'd3';
     import { onMount } from 'svelte';
     import { 
             getCategoricalDomain, 
             getContinuousDomain, 
+            groupData, 
+            stackData, 
             labelPixelWidth, 
+            getChartHeight, 
+            getSeriesHeight,
             getAxisMargin 
         } from '../js/utils';
     import { ONScolours, ONSpalette } from '../js/colours';
@@ -40,12 +44,13 @@
     dataLabels,
     tooltip,
     height,
-    seriesHeight = 34,
     hover = false,
-    margin = {top: 0, bottom: 0, right: 20}, 
+    margin = {top: 15, bottom: 50, right: 20}, 
     colours = defaultColours[variant],
     children
     } = $props();
+
+    let hovered = $state();
 
     let domainX = $derived(getContinuousDomain({
         data: data,
@@ -71,7 +76,28 @@
         d3.scaleLinear().range([0, width-yAxisMargin-margin.right]).domain(domainX)
     )
 
-    let chartHeight = 700;
+    let chartHeight = $derived(height ? height : getChartHeight({data: data, cateogryKey: yKey, groupKey: zKey, variant: variant}));
+
+    let categories = $derived(new Set(data.map((d) => d[zKey])))
+
+    let colourScheme = $derived.by(() => {
+        let coloursvar;
+        if(categories){
+            coloursvar = {}
+            let i = 0
+            categories.forEach((category) => {
+                coloursvar[category] = colours[i]
+                i = i+1
+            })
+        } else if(colours.length > 1){
+            coloursvar = colours[0]
+        } else{
+            coloursvar = colours
+        }
+        return coloursvar
+    })
+
+    $inspect("colourScheme", colourScheme);
 
     let labels = $derived.by(() => {
         let labelData = [...data]
@@ -103,8 +129,9 @@
      y={{ 
         axis: 'left',
         domain: domainY, 
-        tickSpacing: 10, 
+        tickSpacing: 20, 
         label: yAxisLabel ? yAxisLabel : "",
+        grid: true,
         tickFormat: (d) => yFormat ? format(yFormat)(d) : d
     }}
     x={{ 
@@ -115,5 +142,28 @@
     }}
     color={{ 
         scheme: colours
-    }}
-/>
+    }}>
+
+    <Dot
+        data={data}
+        x={xKey} 
+        fill={(d) => {
+            let colour;
+            if(variant == "simple" || variant == "comparison"){
+                colour = colourScheme[d[zKey]]
+            } else if(d[yKey] == highlighted){
+                colour = colours[0]
+            } else if(highlighted){
+                colour = ONScolours.grey50
+            } else{ 
+                colour = colours[0]
+            }
+
+            // if(variant != 'simple' && highlighted && d[yKey] != highlighted){
+            //     colour = colour + "C7"
+            // }
+            return colour
+        }}
+        y={yKey}
+        r={6}/>
+</Plot>
