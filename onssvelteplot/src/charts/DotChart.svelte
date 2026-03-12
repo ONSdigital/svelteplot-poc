@@ -1,28 +1,24 @@
 <script>
-    import { Plot, GridX, GridY, BarX, AxisX, AxisY, Text, RuleX, Pointer, stackX, RectX, Dot } from 'svelteplot';
+    import { Plot, Dot } from 'svelteplot';
     import { format } from "d3-format";
     import * as d3 from 'd3';
     import { onMount } from 'svelte';
     import { 
             getCategoricalDomain, 
             getContinuousDomain, 
-            groupData, 
-            stackData, 
-            labelPixelWidth, 
             getChartHeight, 
-            getSeriesHeight,
             getAxisMargin 
         } from '../js/utils';
     import { ONScolours, ONSpalette } from '../js/colours';
+    import Legend from "./shared/Legend.svelte";
 
     let defaultColours = {
         simple: ONSpalette,
         comparison: [ONScolours.previous, ONScolours.current]
-    }
+    }//uses the standard colour palette or time comparison colours
 
     let { 
     data, 
-    size,
     width,
     variant = "simple",
     xKey = "x", 
@@ -32,22 +28,17 @@
     yAxisLabel, 
     xDomain = "auto",
     xFormat,
-    xFormatDate,
     xAxisTicks,
     yDomain,
     yFormat,
-    yFormatDate,
-    zFormat,
-    zFormatDate,
     ySort,
     zSortKey, 
-    dataLabels,
     tooltip,
     height,
     hover = false,
     margin = {top: 15, bottom: 50, right: 20}, 
     colours = defaultColours[variant],
-    children
+    radius = 6
     } = $props();
 
     let hovered = $state();
@@ -68,17 +59,13 @@
         valueKey: xKey, 
         categoryKey: yKey, 
         groupKey: zKey
-    }))
+    }));
 
-    let yAxisMargin = $derived(margin.left ? margin.left : getAxisMargin({domain: domainY}))
-
-    let xScale = $derived(
-        d3.scaleLinear().range([0, width-yAxisMargin-margin.right]).domain(domainX)
-    )
+    let yAxisMargin = $derived(margin.left ? margin.left : getAxisMargin({domain: domainY}));
 
     let chartHeight = $derived(height ? height : getChartHeight({data: data, cateogryKey: yKey, groupKey: zKey, variant: variant}));
 
-    let categories = $derived(new Set(data.map((d) => d[zKey])))
+    let categories = $derived(new Set(data.map((d) => d[zKey])));
 
     let colourScheme = $derived.by(() => {
         let coloursvar;
@@ -95,29 +82,17 @@
             coloursvar = colours
         }
         return coloursvar
-    })
-
-    $inspect("colourScheme", colourScheme);
-
-    let labels = $derived.by(() => {
-        let labelData = [...data]
-        labelData.forEach((d) => {
-            d.labelWidth = labelPixelWidth(d[xKey])
-            d.show = true
-            d.anchor = xScale(d[xKey]) - d.labelWidth - 14 > 0 ? "end" : "start"
-            d.fill = d.anchor == "end" ? "#FFFFFF" : "#414042"
-        })
-        return labelData
     });
 
     onMount(() => {
         d3.selectAll(".is-left").attr("text-anchor","end")
-    })
+    });
 
-
-    $inspect("dot plot data", data);
-    $inspect("labels", labels);
 </script>
+
+{#if categories}
+    <Legend {categories} {colourScheme}/>
+{/if}
 
 <Plot
  marginLeft={yAxisMargin}
@@ -158,12 +133,8 @@
             } else{ 
                 colour = colours[0]
             }
-
-            // if(variant != 'simple' && highlighted && d[yKey] != highlighted){
-            //     colour = colour + "C7"
-            // }
             return colour
         }}
         y={yKey}
-        r={6}/>
+        r={+radius}/>
 </Plot>
