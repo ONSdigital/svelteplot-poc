@@ -49,26 +49,41 @@ export function getCategoricalDomain({
 }
 
 export function getContinuousDomain({
-	data, 
-	xDomain = 'auto', 
-	categoryKey = 'y', 
-	valueKey = 'x', 
-	variant = 'simple'
+    data, 
+    xDomain = 'auto', 
+    categoryKey = 'y', 
+    valueKey = 'x', 
+    groupKey = null,
+    variant = 'simple'
 }){
-	if(xDomain == "auto" && variant != "stacked"){
-		if(d3.min(data, d => d[valueKey]) < 0){
-			return d3.extent(data, d => d[valueKey]);
-		} else{
-			return [0, d3.max(data, d => d[valueKey])];
-		}
-	} else if(xDomain == "auto" && variant == "stacked"){
-		const categorySums = d3.rollup(
-			data,
-			v => d3.sum(v, d => d[valueKey]),
-			d => d[categoryKey]
-		);
-		return [0, d3.max(categorySums.values())];
-	}
+    if(xDomain == "auto" && variant != "stacked"){
+        if(d3.min(data, d => d[valueKey]) < 0){
+            return d3.extent(data, d => d[valueKey]);
+        } else{
+            return [0, d3.max(data, d => d[valueKey])];
+        }
+    } else if(xDomain == "auto" && variant == "stacked"){
+        if(groupKey){
+            const groupedSums = d3.rollup(
+                data,
+                v => d3.sum(v, d => d[valueKey]),
+                d => d[groupKey],
+                d => d[categoryKey]
+            );
+            const allValues = [...groupedSums.values()].flatMap(group => [...group.values()]);
+            // Sum across categories within each group, then find the max group total
+            return [0, d3.max(allValues)];
+        }
+
+        const categorySums = d3.rollup(
+            data,
+            v => d3.sum(v, d => d[valueKey]),
+            d => d[categoryKey]
+        );
+        return [0, d3.max(categorySums.values())];
+    } else{
+        return xDomain;
+    }
 }
 
 export function groupData(data, key){

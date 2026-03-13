@@ -3,10 +3,9 @@
     import BarChart from "./BarChart.svelte";
     import LineChart from "./LineChart.svelte";
     import DotChart from "./DotChart.svelte";
-    import Beeswarm from "./Beeswarm.svelte";
     import Legend from "./shared/Legend.svelte";
 
-    import { getCategoricalDomain } from '../js/utils';
+    import { getCategoricalDomain, getContinuousDomain } from '../js/utils';
     import { ONScolours, ONSpalette, oldONSpalette } from '../js/colours'
 
     let defaultColours = {
@@ -58,12 +57,30 @@
         variant: props.variant, 
         sort: props.ySort, 
         sortKey: props.zSortKey, 
-        valueKey: props.xKey, 
-        categoryKey: props.yKey, 
+        valueKey: props.xKey ? props.xKey : 'x', 
+        categoryKey: props.yKey ? props.yKey : 'y', 
         groupKey: props.zKey
     }) : null)
 
-    $inspect(domainY)
+    let allData = $derived.by(() => {
+        let dataArr = []
+        let keys = Object.keys(data)
+        keys.forEach((key) => {
+            data[key].forEach((d) => {
+                dataArr.push(d)
+            })
+        })
+        return dataArr
+    })
+
+    let domainX = $derived(getContinuousDomain({
+        data: allData,
+        variant: props.variant ? props.variant : 'simple',
+        categoryKey: props.yKey ? props.yKey : 'y',
+        valueKey: props.xKey ? props.xKey : 'x',
+        groupKey: props.smKey ? props.smKey : null,
+        xDomain: props.xDomain
+    }))
 
 </script>
 
@@ -82,6 +99,7 @@
                     data={data[group]}
                     margin={i % chartEvery == 0 ? smMargin[0]: smMargin[1]}
                     yDomain={domainY}
+                    xDomain={domainX}
                     smGridPosition = {i % chartEvery}
                 />
             {:else if type.toLowerCase() === "line"}
