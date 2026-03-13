@@ -3,6 +3,7 @@
     import BarChart from "./BarChart.svelte";
     import LineChart from "./LineChart.svelte";
     import DotChart from "./DotChart.svelte";
+    import Beeswarm from "./Beeswarm.svelte";
     import Legend from "./shared/Legend.svelte";
 
     import { getCategoricalDomain } from '../js/utils';

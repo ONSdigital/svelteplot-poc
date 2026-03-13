@@ -163,7 +163,8 @@ export function getChartHeight({
 	if(variant == "clustered"){
 	    return seriesHeight * ([...new Set(data.map((d) => d[categoryKey]))].length * [...new Set(data.map((d) => d[groupKey]))].length)
 	} else{
-        seriesHeight * ([...new Set(data.map((d) => d[categoryKey]))].length)
+        // console.log([...new Set(data.map((d) => d[categoryKey]))].length)
+        return seriesHeight * ([...new Set(data.map((d) => d[categoryKey]))].length)
 	}
 }
 

@@ -182,7 +182,6 @@
             insetBottom={-2}
             insetLeft={-yAxisMargin}
             fill={ONScolours.grey20}
-            
             class={"opaque"}
         />
     {/if}
