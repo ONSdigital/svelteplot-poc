@@ -236,7 +236,7 @@
             <Tooltip
                 isPastMidpoint = {tooltipData.data[xKey] > (domainX[0] + domainX[1]) / 2}
                 x={tooltipData.x}
-                y={tooltipData.y - seriesHeight/2}
+                y={tooltipData.y}
             >
                 <div class="tooltip-identifier">{tooltipData.data[zKey]}</div>
                 <div class="tooltip-values">
