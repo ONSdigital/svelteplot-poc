@@ -13,7 +13,7 @@ let {
     class="tooltip"
     style:left="{x}px"
     style:top="{y}px"
-    style:transform={isPastMidpoint ? 'translate(-100%, -50%)' : 'translate(10px, -50%)'}
+    style:transform={isPastMidpoint ? 'translate(-105%, -50%)' : 'translate(5%, -50%)'}
     style:width="max-content"
 >
     {#if children}

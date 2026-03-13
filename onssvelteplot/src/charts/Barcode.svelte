@@ -16,6 +16,7 @@
     } from '../js/utils';
     import { ONScolours, ONSpalette, oldONSpalette } from '../js/colours'
     import Legend from "./shared/Legend.svelte"
+    import Tooltip from "./shared/Tooltip.svelte"
 
     let defaultColours = [ONScolours.oceanBlue]
 
@@ -55,6 +56,7 @@
     } = $props();
 
     let plotEl = $state();
+    let tooltipData = $state();
 
     let categories = $derived(new Set(data.map((d) => d[yKey])))
 
@@ -135,8 +137,10 @@
             
             d3.select(this).attr("class", bars[i][zKey] == highlighted ? bars[i].code + " highlighted" : bars[i].code + " " + barClass)
             
-            d3.select(this).on("mouseover", function() {
+            d3.select(this).on("mouseover", function(evt) {
                 clearTimeout(mouseoutTimer)
+                tooltipData = {x: evt.layerX, y: evt.layerY, data: bars[i]}
+                console.log(tooltipData)
                 if(bars[i][zKey] != highlighted){
                     d3.selectAll("." + barClass).classed("unfocus", true)
                     d3.select(this).classed("unfocus", false).classed("hovered", true).raise()
@@ -146,6 +150,7 @@
             d3.select(this).on("mouseout", function() {
                 mouseoutTimer = setTimeout(() => {
                     d3.selectAll("." + barClass).classed("unfocus", false).classed("hovered", false)
+                    tooltipData = null;
                 }, 300)
             })
         })
@@ -225,6 +230,20 @@
             text={(d) => xFormat ? format(xFormat)(d[xKey]) : d[xKey]}
         />
     {/if}
+
+    {#snippet overlay()}
+        {#if tooltipData}
+            <Tooltip
+                isPastMidpoint = {tooltipData.data[xKey] > (domainX[0] + domainX[1]) / 2}
+                x={tooltipData.x}
+                y={tooltipData.y - seriesHeight/2}
+            >
+                <div class="identifier">{tooltipData.data[zKey]}</div>
+                <div class="group">{tooltipData.data[yKey]}</div>
+                <div class="value">{xAxisLabel ? xAxisLabel+": "+d3.format(xFormat)(tooltipData.data[xKey]) : d3.format(xFormat)(tooltipData.data[xKey])}</div>
+            </Tooltip>
+        {/if}
+    {/snippet}
 
     {#if children}
         {@render children()}
