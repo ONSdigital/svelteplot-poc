@@ -239,7 +239,10 @@
                 y={tooltipData.y - seriesHeight/2}
             >
                 <div class="identifier">{tooltipData.data[zKey]}</div>
-                <div class="group">{tooltipData.data[yKey]}</div>
+                {#if smKey}
+                    <div class="group">{tooltipData.data[smKey]}</div>
+                {/if}
+                <div class="value">{tooltipData.data[yKey]}</div>
                 <div class="value">{xAxisLabel ? xAxisLabel+": "+d3.format(xFormat)(tooltipData.data[xKey]) : d3.format(xFormat)(tooltipData.data[xKey])}</div>
             </Tooltip>
         {/if}
