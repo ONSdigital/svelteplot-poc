@@ -12,7 +12,8 @@
         labelPixelWidth, 
         getChartHeight, 
         getSeriesHeight,
-        getAxisMargin 
+        getAxisMargin,
+        getTooltipData
     } from '../js/utils';
     import { ONScolours, ONSpalette, oldONSpalette } from '../js/colours'
     import Legend from "./shared/Legend.svelte"
@@ -139,8 +140,7 @@
             
             d3.select(this).on("mouseover", function(evt) {
                 clearTimeout(mouseoutTimer)
-                tooltipData = {x: evt.layerX, y: evt.layerY, data: bars[i]}
-                console.log(tooltipData)
+                tooltipData = getTooltipData(evt,bars[i])
                 if(bars[i][zKey] != highlighted){
                     d3.selectAll("." + barClass).classed("unfocus", true)
                     d3.select(this).classed("unfocus", false).classed("hovered", true).raise()

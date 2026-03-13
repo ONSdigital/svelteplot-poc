@@ -203,3 +203,7 @@ export function getScreenSize(width){
 		return 'lg'
 	}
 }
+
+export function getTooltipData(evt,d){
+    return {x: evt.layerX, y: evt.layerY, data: d}
+}

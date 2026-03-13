@@ -13,7 +13,8 @@
         labelPixelWidth, 
         getChartHeight, 
         getSeriesHeight,
-        getAxisMargin 
+        getAxisMargin,
+        getTooltipData,
     } from '../js/utils';
     import { ONScolours, ONSpalette, oldONSpalette } from '../js/colours'
     import Legend from "./shared/Legend.svelte"
@@ -250,7 +251,7 @@
         onpointerenter={(evt, d) => {
             if(tooltip) {
                 clearTimeout(leaveTimeout);
-                tooltipData = {x: evt.layerX, y: evt.layerY, data: d}
+                tooltipData = getTooltipData(evt,d)
 
                 d3.select(plotEl).selectAll(".point-highlight").remove();
                   // Select all matching elements and clone them as highlights
