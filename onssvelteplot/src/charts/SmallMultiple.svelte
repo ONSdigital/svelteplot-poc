@@ -3,10 +3,10 @@
     import BarChart from "./BarChart.svelte";
     import LineChart from "./LineChart.svelte";
     import DotChart from "./DotChart.svelte";
-    import Beeswarm from "./Beeswarm.svelte";
+    import Barcode from "./Barcode.svelte";
     import Legend from "./shared/Legend.svelte";
 
-    import { getCategoricalDomain } from '../js/utils';
+    import { getCategoricalDomain, getContinuousDomain } from '../js/utils';
     import { ONScolours, ONSpalette, oldONSpalette } from '../js/colours'
 
     let defaultColours = {
@@ -58,12 +58,30 @@
         variant: props.variant, 
         sort: props.ySort, 
         sortKey: props.zSortKey, 
-        valueKey: props.xKey, 
-        categoryKey: props.yKey, 
+        valueKey: props.xKey ? props.xKey : 'x', 
+        categoryKey: props.yKey ? props.yKey : 'y', 
         groupKey: props.zKey
     }) : null)
 
-    $inspect(domainY)
+    let allData = $derived.by(() => {
+        let dataArr = []
+        let keys = Object.keys(data)
+        keys.forEach((key) => {
+            data[key].forEach((d) => {
+                dataArr.push(d)
+            })
+        })
+        return dataArr
+    })
+
+
+    let domainX = $derived(getContinuousDomain({
+        data: allData,
+        variant: props.variant ? props.variant : 'simple',
+        categoryKey: props.yKey ? props.yKey : 'y',
+        valueKey: props.xKey ? props.xKey : 'x',
+        xDomain: props.xDomain
+    }))
 
 </script>
 
@@ -95,6 +113,15 @@
                 />
             {:else if type.toLowerCase() === "dot"}
                 <DotChart 
+                    width={i % chartEvery == 0 ? itemWidth + margin.left : i % chartEvery == chartEvery ? itemWidth + chartGap + margin.right : itemWidth + chartGap}
+                    {...props} 
+                    data={data[group]}
+                    margin={i % chartEvery == 0 ? smMargin[0]: smMargin[1]}
+                    yDomain={domainY}
+                    smGridPosition = {i % chartEvery}
+                />
+            {:else if type.toLowerCase() === "barcode"}
+                <Barcode
                     width={i % chartEvery == 0 ? itemWidth + margin.left : i % chartEvery == chartEvery ? itemWidth + chartGap + margin.right : itemWidth + chartGap}
                     {...props} 
                     data={data[group]}

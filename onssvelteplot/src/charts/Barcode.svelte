@@ -47,7 +47,7 @@
         dataLabels,
         tooltip,
         height,
-        seriesHeight = 70,
+        seriesHeight = 75,
         hover = false,
         margin = {top: 0, bottom: 0, right: 20}, 
         colours = defaultColours,
@@ -118,18 +118,41 @@
         return derivedData
     })
 
-    onMount(() => {
-        d3.selectAll(".is-left").attr("text-anchor","end")
-    })
-
-    let chartEl;
-
     $effect(() => {
         if(highlighted){
             setTimeout(() => {
+                tickHighlightHover()
                 d3.select(plotEl).selectAll(".highlighted").raise()
             }, 100);
         }
+    })
+
+    function tickHighlightHover(){
+        let lines = d3.select(plotEl).select(".tick-x").selectAll("*")
+        lines.each(function (d, i){
+            let mouseoutTimer;
+            const barClass = "barcode" + bars[i][yKey].replace(/[^A-Z0-9\s]+|\s+/ig, "")
+            
+            d3.select(this).attr("class", bars[i][zKey] == highlighted ? bars[i].code + " highlighted" : bars[i].code + " " + barClass)
+            
+            d3.select(this).on("mouseover", function() {
+                clearTimeout(mouseoutTimer)
+                if(bars[i][zKey] != highlighted){
+                    d3.selectAll("." + barClass).classed("unfocus", true)
+                    d3.select(this).classed("unfocus", false).classed("hovered", true).raise()
+                }
+            })
+            
+            d3.select(this).on("mouseout", function() {
+                mouseoutTimer = setTimeout(() => {
+                    d3.selectAll("." + barClass).classed("unfocus", false).classed("hovered", false)
+                }, 300)
+            })
+        })
+    }
+
+    onMount(() => {
+        tickHighlightHover()
     })
 
 
@@ -211,5 +234,14 @@
 </div>
 
 <style>
+
+:global(.hovered){
+    stroke: #003c57 !important;
+    stroke-width: 3px !important;
+}
+:global(.unfocus){
+    stroke: #C6C6C6 !important;
+    stroke-width: 1px !important;
+}
 
 </style>

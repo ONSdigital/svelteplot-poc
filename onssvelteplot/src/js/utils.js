@@ -68,7 +68,9 @@ export function getContinuousDomain({
 			d => d[categoryKey]
 		);
 		return [0, d3.max(categorySums.values())];
-	}
+	} else{
+        return xDomain;
+    }
 }
 
 export function groupData(data, key){
