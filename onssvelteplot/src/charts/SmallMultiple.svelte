@@ -60,9 +60,30 @@
         sortKey: props.zSortKey, 
         valueKey: props.xKey ? props.xKey : 'x', 
         categoryKey: props.yKey ? props.yKey : 'y', 
+        valueKey: props.xKey ? props.xKey : 'x', 
+        categoryKey: props.yKey ? props.yKey : 'y', 
         groupKey: props.zKey
     }) : null)
 
+    let allData = $derived.by(() => {
+        let dataArr = []
+        let keys = Object.keys(data)
+        keys.forEach((key) => {
+            data[key].forEach((d) => {
+                dataArr.push(d)
+            })
+        })
+        return dataArr
+    })
+
+
+    let domainX = $derived(getContinuousDomain({
+        data: allData,
+        variant: props.variant ? props.variant : 'simple',
+        categoryKey: props.yKey ? props.yKey : 'y',
+        valueKey: props.xKey ? props.xKey : 'x',
+        xDomain: props.xDomain
+    }))
     let allData = $derived.by(() => {
         let dataArr = []
         let keys = Object.keys(data)
