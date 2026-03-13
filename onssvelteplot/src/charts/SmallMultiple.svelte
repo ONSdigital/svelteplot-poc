@@ -74,12 +74,12 @@
         return dataArr
     })
 
-
     let domainX = $derived(getContinuousDomain({
         data: allData,
         variant: props.variant ? props.variant : 'simple',
         categoryKey: props.yKey ? props.yKey : 'y',
         valueKey: props.xKey ? props.xKey : 'x',
+        groupKey: props.smKey ? props.smKey : null,
         xDomain: props.xDomain
     }))
 
@@ -100,6 +100,7 @@
                     data={data[group]}
                     margin={i % chartEvery == 0 ? smMargin[0]: smMargin[1]}
                     yDomain={domainY}
+                    xDomain={domainX}
                     smGridPosition = {i % chartEvery}
                 />
             {:else if type.toLowerCase() === "line"}
