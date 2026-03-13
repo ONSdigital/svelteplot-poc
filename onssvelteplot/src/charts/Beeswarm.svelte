@@ -17,6 +17,7 @@
     } from '../js/utils';
     import { ONScolours, ONSpalette, oldONSpalette } from '../js/colours'
     import Legend from "./shared/Legend.svelte"
+    import Tooltip from "./shared/Tooltip.svelte"
 
     let defaultColours = [ONScolours.oceanBlue]
 
@@ -276,18 +277,15 @@
 
     {#snippet overlay()}
         {#if tooltipData}
-            {@const isPastMidpoint = tooltipData.data[xKey] > (domainX[0] + domainX[1]) / 2}
-            <div 
-                class="tooltip"
-                style:left="{tooltipData.x}px"
-                style:top="{tooltipData.y}px"
-                style:transform={isPastMidpoint ? 'translate(-100%, -50%)' : 'translate(10px, -50%)'}
-                style:width="max-content"
+            <Tooltip
+                isPastMidpoint = {tooltipData.data[xKey] > (domainX[0] + domainX[1]) / 2}
+                x={tooltipData.x}
+                y={tooltipData.y}
             >
                 <div class="identifier">{tooltipData.data[zKey]}</div>
                 <div class="group">{tooltipData.data[yKey]}</div>
                 <div class="value">{xAxisLabel ? xAxisLabel+": "+d3.format(xFormat)(tooltipData.data[xKey]) : d3.format(xFormat)(tooltipData.data[xKey])}</div>
-            </div>
+            </Tooltip>
         {/if}
     {/snippet}
 
@@ -300,25 +298,5 @@
 <style>
     :global(.dot path){
         paint-order: stroke fill;
-    }
-    .tooltip {
-        position: absolute;
-        pointer-events: none;
-        background: white;
-        /* border: 1px solid #ccc; */
-        padding: 4px 8px;
-        font-size: 14px;
-        transform: translate(10px, -50%);
-    }
-    .tooltip .identifier{
-        font-weight: 600;
-    }
-    .tooltip .value{
-        line-height: 14px;
-        margin-bottom: 6px;
-    }
-    .highlighted{
-        outline: 'white';
-        outline-width: "12px";
     }
 </style>

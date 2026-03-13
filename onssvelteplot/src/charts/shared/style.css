@@ -89,6 +89,23 @@ text{
   fill: "#707071" !important;
 }
 
+.tooltip {
+    position: absolute;
+    pointer-events: none;
+    background: white;
+    /* border: 1px solid #ccc; */
+    padding: 4px 8px;
+    font-size: 14px;
+    transform: translate(10px, -50%);
+}
+.tooltip .identifier{
+    font-weight: 600;
+}
+.tooltip .value{
+    line-height: 14px;
+    margin-bottom: 6px;
+}
+
   :global(.highlighted path) {
       filter: url(#highlight-ring);
   }
