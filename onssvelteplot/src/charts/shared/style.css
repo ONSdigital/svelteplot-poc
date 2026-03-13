@@ -98,12 +98,11 @@ text{
     font-size: 14px;
     transform: translate(10px, -50%);
 }
-.tooltip .identifier{
+.tooltip-identifier{
     font-weight: 600;
 }
-.tooltip .value{
-    line-height: 14px;
-    margin-bottom: 6px;
+.tooltip-values > div{
+    line-height: 20px;
 }
 
   :global(.highlighted path) {

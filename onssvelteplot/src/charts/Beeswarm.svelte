@@ -282,9 +282,14 @@
                 x={tooltipData.x}
                 y={tooltipData.y}
             >
-                <div class="identifier">{tooltipData.data[zKey]}</div>
-                <div class="group">{tooltipData.data[yKey]}</div>
-                <div class="value">{xAxisLabel ? xAxisLabel+": "+d3.format(xFormat)(tooltipData.data[xKey]) : d3.format(xFormat)(tooltipData.data[xKey])}</div>
+                <div class="tooltip-identifier">{tooltipData.data[zKey]}</div>
+                <div class="tooltip-values">
+                    {#if smKey}
+                        <div>{tooltipData.data[smKey]}</div>
+                    {/if}
+                    <div>{tooltipData.data[yKey]}</div>
+                    <div>{xAxisLabel ? xAxisLabel+": "+d3.format(xFormat)(tooltipData.data[xKey]) : d3.format(xFormat)(tooltipData.data[xKey])}</div>
+                </div>            
             </Tooltip>
         {/if}
     {/snippet}
