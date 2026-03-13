@@ -3,6 +3,7 @@
   import LineChart from "./LineChart.svelte"
   import DotChart from "./DotChart.svelte"
   import Beeswarm from "./Beeswarm.svelte"
+  import Barcode from "./Barcode.svelte"
   import SmallMultiple from "./SmallMultiple.svelte";
   import '././shared/style.css';
   import { groupData, getScreenSize } from '../js/utils';
@@ -120,6 +121,8 @@
         <DotChart {width} {size} {...props}/>
       {:else if type.toLowerCase() === "beeswarm"}
         <Beeswarm {width} {size} {...props}/>
+      {:else if type.toLowerCase() === "barcode"}
+        <Barcode {width} {size} {...props}/>
       {/if}
     </div>
     {/key}
