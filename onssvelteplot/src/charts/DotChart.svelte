@@ -1,5 +1,5 @@
 <script>
-    import { Plot, Dot, RectX, AxisX, AxisY, GridX } from 'svelteplot';
+    import { Plot, Dot, RectX, AxisY, GridY } from 'svelteplot';
     import { format } from "d3-format";
     import * as d3 from 'd3';
     import { onMount } from 'svelte';
@@ -7,7 +7,8 @@
             getCategoricalDomain, 
             getContinuousDomain, 
             getChartHeight, 
-            getAxisMargin 
+            getAxisMargin,
+            flagCloseXInGroups
         } from '../js/utils';
     import { oldONSpalette, ONScolours, ONSpalette } from '../js/colours';
     import Legend from "./shared/Legend.svelte";
@@ -41,7 +42,9 @@
     hover = false,
     margin = {top: 15, bottom: 50, right: 20}, 
     colours = defaultColours[variant],
-    radius = 6
+    radius = 6,
+    stroke = "#fff",
+    strokeWidth = 1.5
     } = $props();
 
     let hovered = $state();
@@ -67,6 +70,26 @@
     let yAxisMargin = $derived(margin.left ? margin.left : getAxisMargin({domain: domainY}));
 
     let chartHeight = $derived(height ? height : getChartHeight({data: data, cateogryKey: yKey, groupKey: zKey, variant: variant}));
+
+    let dataWithDy = $derived.by(() => {
+        const scale = d3.scaleLinear()
+            .range([0, width - yAxisMargin - margin.right])
+            .domain(domainX);
+
+        const rows = flagCloseXInGroups({
+            data,
+            xScale: scale,
+            xKey,
+            yKey,
+            zKey,
+            thresholdPx: 5,
+            dyAdjust: 5
+        });
+        console.log('rows', rows)
+        return rows;
+    });
+
+    $inspect(dataWithDy, 'dataWithDy')
 
     let categories = $derived(new Set(data.map((d) => d[zKey])));
 
@@ -114,7 +137,7 @@
 {/if}
 
 <Plot
- marginLeft={yAxisMargin}
+    marginLeft={yAxisMargin}
     marginRight={margin.right ? margin.right : null}
     marginTop={margin.top ? margin.top : null}
     marginBottom={margin.bottom ? margin.bottom : null}
@@ -160,18 +183,15 @@
             class={"opaque"}
         />
     {/if}
+    
     <AxisY tickClass={(d) => d == highlighted ? "bold" : null}/>
     
-    <AxisX
-        tickCount={xAxisTicks}
-        tickClass={(d) =>
-            d === 0 ? 'zero' : 'horizontal'}/>
-    <GridX 
-        strokeDasharray={(d) => d != 0 ? "2,2" : null}
-        ></GridX>
+    <GridY 
+    strokeDasharray={(d) => d != 0 ? "2,2" : null}
+    ></GridY>
 
     <Dot
-        data={data}
+        data={dataWithDy}
         x={xKey} 
         fill={(d) => {
             let colour;
@@ -187,8 +207,15 @@
             return colour
         }}
         y={yKey}
+        dy={(d) => {
+            // Use computed close-distance flag from dataWithDy;if true, nudge to avoid overlap.
+            return d.dy;
+        }}
         r={+radius}
-        symbol={(d) => symbolScheme[d[zKey]]}/>
+        symbol={(d) => symbolScheme[d[zKey]]}
+        {stroke}
+        {strokeWidth}
+        />
 </Plot>
 
 <style>

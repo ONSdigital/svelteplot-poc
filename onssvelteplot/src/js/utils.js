@@ -187,3 +187,62 @@ export function getScreenSize(width){
 		return 'lg'
 	}
 }
+
+export function flagCloseXInGroups({
+    data,
+    xScale,
+    xKey = 'x',
+    yKey = 'y',
+    zKey = 'z',
+    thresholdPx = 5,
+    dyAdjust = 3
+}) {
+    if (!Array.isArray(data) || !xScale || typeof xScale !== 'function') {
+        if (Array.isArray(data)) {
+            data.forEach((d) => { d.dy = 0; });
+            return data;
+        }
+        return [];
+    }
+
+    // copy to avoid reactivity/reference problems and keep original data untouched
+    const rows = data.map((d) => ({ ...d, dy: 0 }));
+    const groups = d3.group(rows, (d) => d[yKey]);
+
+    for (const group of groups.values()) {
+        const zValues = [...new Set(group.map((d) => d[zKey]))];
+        const firstZ = zValues.length > 0 ? zValues[0] : null;
+        const secondZ = zValues.length > 0 ? zValues[1] : null;
+        const thirdZ = zValues.length > 0 ? zValues[2] : null;
+
+        group.forEach((d) => {
+            const xRaw = d[xKey];
+            const xValue = typeof xRaw === 'number' ? xRaw : Number(xRaw);
+            const scaledX = xScale(xValue);
+            d.__xScaled = Number.isFinite(scaledX) ? scaledX : NaN;
+        });
+
+        for (let i = 0; i < group.length; i++) {
+            for (let j = i + 1; j < group.length; j++) {
+                const a = group[i];
+                const b = group[j];
+                if (!Number.isFinite(a.__xScaled) || !Number.isFinite(b.__xScaled)) continue;
+                if (Math.abs(a.__xScaled - b.__xScaled) <= thresholdPx) {
+                    if (a[zKey] !== firstZ) a.dy = a[zKey] === secondZ ? -dyAdjust : -dyAdjust;
+                    if (b[zKey] !== firstZ) b.dy = b[zKey] === secondZ ? -dyAdjust : -dyAdjust;
+                    if (a[zKey] !== firstZ) a.dy = a[zKey] === thirdZ ? +dyAdjust : -dyAdjust;
+                    if (b[zKey] !== firstZ) b.dy = b[zKey] === thirdZ ? +dyAdjust : -dyAdjust;
+                    console.log(`Flagging close points: ${a[yKey]} (${a[zKey]}=${a[xKey]}) and ${b[yKey]} (${b[zKey]}=${b[xKey]}) with dy adjustments: ${a.dy}, ${b.dy}`);
+                }
+                else 
+                {a.dy = 0;
+                 b.dy = 0;   
+                }
+            }
+        }
+
+        group.forEach((d) => { delete d.__xScaled; });
+    
+    }
+    return rows;
+}
