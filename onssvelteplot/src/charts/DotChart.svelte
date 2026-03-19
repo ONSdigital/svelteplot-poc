@@ -8,13 +8,14 @@
             getContinuousDomain, 
             getChartHeight, 
             getAxisMargin,
-            flagCloseXInGroups
+            flagCloseXInGroups,
+            labelPixelWidth
         } from '../js/utils';
-    import { oldONSpalette, ONScolours, ONSpalette } from '../js/colours';
+    import { ONScolours, ONSpalette } from '../js/colours';
     import Legend from "./shared/Legend.svelte";
 
     let defaultColours = {
-        simple: oldONSpalette,
+        simple: ONSpalette,
         comparison: [ONScolours.previous, ONScolours.current]
     }//uses the standard colour palette or time comparison colours
 
@@ -71,6 +72,8 @@
 
     let chartHeight = $derived(height ? height : getChartHeight({data: data, cateogryKey: yKey, groupKey: zKey, variant: variant}));
 
+    let seriesCount = $derived(new Set(data.map((d) => d[zKey])).size);
+
     let dataWithDy = $derived.by(() => {
         const scale = d3.scaleLinear()
             .range([0, width - yAxisMargin - margin.right])
@@ -82,14 +85,15 @@
             xKey,
             yKey,
             zKey,
-            thresholdPx: 5,
-            dyAdjust: 5
+            thresholdPx: 8,
+            dyAdjust: 4
         });
-        console.log('rows', rows)
-        return rows;
-    });
 
-    $inspect(dataWithDy, 'dataWithDy')
+        if (seriesCount > 3) {
+            console.warn(`Warning: ${seriesCount} series detected. This template should only have 3 or fewer series for optimal readability. Consider using a different chart type.`);
+        }
+        else {  return rows;}
+    });
 
     let categories = $derived(new Set(data.map((d) => d[zKey])));
 

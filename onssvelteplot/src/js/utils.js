@@ -194,8 +194,8 @@ export function flagCloseXInGroups({
     xKey = 'x',
     yKey = 'y',
     zKey = 'z',
-    thresholdPx = 5,
-    dyAdjust = 3
+    thresholdPx,
+    dyAdjust,
 }) {
     if (!Array.isArray(data) || !xScale || typeof xScale !== 'function') {
         if (Array.isArray(data)) {
@@ -205,7 +205,6 @@ export function flagCloseXInGroups({
         return [];
     }
 
-    // copy to avoid reactivity/reference problems and keep original data untouched
     const rows = data.map((d) => ({ ...d, dy: 0 }));
     const groups = d3.group(rows, (d) => d[yKey]);
 
@@ -228,12 +227,11 @@ export function flagCloseXInGroups({
                 const b = group[j];
                 if (!Number.isFinite(a.__xScaled) || !Number.isFinite(b.__xScaled)) continue;
                 if (Math.abs(a.__xScaled - b.__xScaled) <= thresholdPx) {
-                    if (a[zKey] !== firstZ) a.dy = a[zKey] === secondZ ? -dyAdjust : -dyAdjust;
-                    if (b[zKey] !== firstZ) b.dy = b[zKey] === secondZ ? -dyAdjust : -dyAdjust;
-                    if (a[zKey] !== firstZ) a.dy = a[zKey] === thirdZ ? +dyAdjust : -dyAdjust;
-                    if (b[zKey] !== firstZ) b.dy = b[zKey] === thirdZ ? +dyAdjust : -dyAdjust;
-                    console.log(`Flagging close points: ${a[yKey]} (${a[zKey]}=${a[xKey]}) and ${b[yKey]} (${b[zKey]}=${b[xKey]}) with dy adjustments: ${a.dy}, ${b.dy}`);
-                }
+                    if (a[zKey] !== thirdZ) a.dy = a[zKey] === secondZ ? -dyAdjust : -dyAdjust;
+                    if (b[zKey] !== thirdZ) b.dy = b[zKey] === secondZ ? -dyAdjust : -dyAdjust;
+                    if (a[zKey] !== thirdZ) a.dy = a[zKey] === firstZ ? +dyAdjust : -dyAdjust;
+                    if (b[zKey] !== thirdZ) b.dy = b[zKey] === firstZ ? +dyAdjust : -dyAdjust;
+                    }
                 else 
                 {a.dy = 0;
                  b.dy = 0;   
