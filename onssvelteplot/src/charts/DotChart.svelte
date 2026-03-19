@@ -1,5 +1,5 @@
 <script>
-    import { Plot, Dot, RectX, AxisY, GridY } from 'svelteplot';
+    import { Plot, Dot, RectX, AxisY, GridY, Text } from 'svelteplot';
     import { format } from "d3-format";
     import * as d3 from 'd3';
     import { onMount } from 'svelte';
@@ -9,14 +9,16 @@
             getChartHeight, 
             getAxisMargin,
             flagCloseXInGroups,
-            labelPixelWidth
+            labelPixelWidth,
+            getLabelPosition
         } from '../js/utils';
     import { ONScolours, ONSpalette } from '../js/colours';
     import Legend from "./shared/Legend.svelte";
 
     let defaultColours = {
         simple: ONSpalette,
-        comparison: [ONScolours.previous, ONScolours.current]
+        comparison: [ONScolours.previous, ONScolours.current],
+        range: ONSpalette
     }//uses the standard colour palette or time comparison colours
 
     let { 
@@ -45,7 +47,8 @@
     colours = defaultColours[variant],
     radius = 6,
     stroke = "#fff",
-    strokeWidth = 1.5
+    strokeWidth = 1.5,
+    dataLabels
     } = $props();
 
     let hovered = $state();
@@ -87,15 +90,48 @@
             zKey,
             thresholdPx: 8,
             dyAdjust: 4
-        });
-
+        }); 
+    
         if (seriesCount > 3) {
             console.warn(`Warning: ${seriesCount} series detected. This template should only have 3 or fewer series for optimal readability. Consider using a different chart type.`);
         }
         else {  return rows;}
     });
+    
+    let dataWithLabelPosition = $derived.by(() => {
+        if(dataLabels){
+            return getLabelPosition({
+                data: dataWithDy,
+                xKey: xKey,
+                yKey: yKey,
+                zKey: zKey,
+            });
+            
+        } else{
+            return dataWithDy
+        }
+    });
 
     let categories = $derived(new Set(data.map((d) => d[zKey])));
+
+    let xScale = $derived(
+        d3.scaleLinear().range([0, width-yAxisMargin-margin.right]).domain(domainX)
+    )
+
+    let labels = $derived.by(() => {
+        if(dataWithLabelPosition){
+            let labelData = [...dataWithLabelPosition]
+            labelData.forEach((d) => {
+                d.labelWidth = labelPixelWidth(d[xKey])
+                d.show = true
+                d.anchor = d.xMax === true ? "start" : "end"
+                d.dy = d.dy ? d.dy : 0
+            })
+            return labelData            
+        } else{
+            return null
+        }
+    });
 
     let colourScheme = $derived.by(() => {
         let coloursvar;
@@ -199,7 +235,7 @@
         x={xKey} 
         fill={(d) => {
             let colour;
-            if(variant == "simple" || variant == "comparison"){
+            if(variant == "simple" || variant == "comparison" || (variant == "range")){
                 colour = colourScheme[d[zKey]]
             } else if(d[yKey] == highlighted){
                 colour = colours[0]
@@ -212,7 +248,6 @@
         }}
         y={yKey}
         dy={(d) => {
-            // Use computed close-distance flag from dataWithDy;if true, nudge to avoid overlap.
             return d.dy;
         }}
         r={+radius}
@@ -220,6 +255,33 @@
         {stroke}
         {strokeWidth}
         />
+    
+    {#if dataLabels}
+        <Text
+            data={labels.filter((d) => d.show == true)}
+            x={xKey}
+            y={yKey}
+            textAnchor={(d) => d.anchor}
+            text={(d) => dataLabels.format ? format(dataLabels.format)(d[xKey]) : xFormat ? format(xFormat)(d[xKey]) : d[xKey]}
+            textClass="dataLabel"
+            dx={(d) => d.anchor == "end" ? -9 : 9}
+            dy={-1}
+            fill={(d) => {
+            let colour;
+            if(variant == "simple" || variant == "comparison" || variant == "range"){
+                colour = colourScheme[d[zKey]]
+            } else if(d[yKey] == highlighted){
+                colour = colours[0]
+            } else if(highlighted){
+                colour = ONScolours.grey50
+            } else{ 
+                colour = colours[0]
+            }
+            return colour
+        }}
+        />
+    {/if}
+
 </Plot>
 
 <style>

@@ -210,6 +210,7 @@ export function flagCloseXInGroups({
 
     for (const group of groups.values()) {
         const zValues = [...new Set(group.map((d) => d[zKey]))];
+        if(zValues.length > 1){console.warn("More than 2 series on the chart, turn off chart labels")}
         const firstZ = zValues.length > 0 ? zValues[0] : null;
         const secondZ = zValues.length > 0 ? zValues[1] : null;
         const thirdZ = zValues.length > 0 ? zValues[2] : null;
@@ -244,3 +245,34 @@ export function flagCloseXInGroups({
     }
     return rows;
 }
+
+export function getLabelPosition({
+    data,
+    xKey = 'x',
+    yKey = 'y',
+    zKey = 'z',}
+){
+    const rows = data.map((d) => ({ ...d, xMax: false }));
+    const groups = d3.group(rows, (d) => d[yKey]);
+
+    for (const group of groups.values()) {
+    const series = [...new Set(group.map((d) => d[zKey]))];
+    if(series.length > 2){console.warn("More than 2 series on the chart, turn off chart labels")}
+    
+
+    for (let i = 0; i < group.length; i++) {
+            for (let j = i + 1; j < group.length; j++) {
+                const a = group[i];
+                const b = group[j];
+                if (a.xKey > b.xKey) 
+                 {a.xMax = true
+                 b.xMax = false}
+                else 
+                {a.xMax = false
+                 b.xMax = true}
+            }
+    }
+
+    }
+    return rows;
+};
