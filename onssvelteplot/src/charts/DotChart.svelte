@@ -71,6 +71,7 @@
     let chartHeight = $derived(height ? height : getChartHeight({data: data, cateogryKey: yKey, groupKey: zKey, variant: variant}));
 
     let seriesCount = $derived(new Set(data.map((d) => d[zKey])).size);
+    let seriesNames = $derived([...new Set(data.map((d) => d[zKey]))]);
 
     let dataLink = $derived(
         Object.values(
@@ -238,8 +239,8 @@
 
     <Link
         data={dataLink}
-        x1={"2002"}
-        x2={"2010"}
+        x1={seriesNames[0]}
+        x2={seriesNames[1]}
         y={yKey}
         stroke={ONScolours.grey30}
         strokeWidth={1.5}
