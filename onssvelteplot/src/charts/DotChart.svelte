@@ -1,5 +1,5 @@
 <script>
-    import { Plot, Dot, RectX, AxisY, GridY, Text } from 'svelteplot';
+    import { Plot, Dot, RectX, AxisY, GridY, Text, Link } from 'svelteplot';
     import { format } from "d3-format";
     import * as d3 from 'd3';
     import { onMount } from 'svelte';
@@ -35,14 +35,11 @@
     yAxisLabel, 
     xDomain = "auto",
     xFormat,
-    xAxisTicks,
     yDomain,
     yFormat,
     ySort,
     zSortKey, 
-    tooltip,
     height,
-    hover = false,
     margin = {top: 15, bottom: 50, right: 20}, 
     colours = defaultColours[variant],
     radius = 6,
@@ -50,8 +47,6 @@
     strokeWidth = 1.5,
     dataLabels
     } = $props();
-
-    let hovered = $state();
 
     let domainX = $derived(getContinuousDomain({
         data: data,
@@ -77,7 +72,22 @@
 
     let seriesCount = $derived(new Set(data.map((d) => d[zKey])).size);
 
-    let dataWithDy = $derived.by(() => {
+    let dataLink = $derived(
+        Object.values(
+            data.reduce((d, item) => {
+                const y = item[yKey]
+                const x = item[xKey]
+                const z = item[zKey]
+                if (!d[y]) {
+                d[y] = { [yKey] : y };
+            }
+                d[y][z] = x;
+                return d;
+            }, {})
+        ));
+   
+
+    let dataDot = $derived.by(() => {
         const scale = d3.scaleLinear()
             .range([0, width - yAxisMargin - margin.right])
             .domain(domainX);
@@ -98,29 +108,25 @@
         else {  return rows;}
     });
     
-    let dataWithLabelPosition = $derived.by(() => {
+    let dataTextLabels = $derived.by(() => {
         if(dataLabels){
             return getLabelPosition({
-                data: dataWithDy,
+                data: dataDot,
                 xKey: xKey,
                 yKey: yKey,
                 zKey: zKey,
             });
             
         } else{
-            return dataWithDy
+            return dataDot
         }
     });
 
     let categories = $derived(new Set(data.map((d) => d[zKey])));
 
-    let xScale = $derived(
-        d3.scaleLinear().range([0, width-yAxisMargin-margin.right]).domain(domainX)
-    )
-
     let labels = $derived.by(() => {
-        if(dataWithLabelPosition){
-            let labelData = [...dataWithLabelPosition]
+        if(dataTextLabels){
+            let labelData = [...dataTextLabels]
             labelData.forEach((d) => {
                 d.labelWidth = labelPixelWidth(d[xKey])
                 d.show = true
@@ -230,8 +236,17 @@
     strokeDasharray={(d) => d != 0 ? "2,2" : null}
     ></GridY>
 
+    <Link
+        data={dataLink}
+        x1={"2002"}
+        x2={"2010"}
+        y={yKey}
+        stroke={ONScolours.grey30}
+        strokeWidth={1.5}
+    />
+
     <Dot
-        data={dataWithDy}
+        data={dataDot}
         x={xKey} 
         fill={(d) => {
             let colour;
@@ -282,6 +297,9 @@
         />
     {/if}
 
+  
+
+   
 </Plot>
 
 <style>
