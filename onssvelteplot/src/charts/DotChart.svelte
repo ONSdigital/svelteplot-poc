@@ -18,7 +18,8 @@
     let defaultColours = {
         simple: ONSpalette,
         comparison: [ONScolours.previous, ONScolours.current],
-        range: ONSpalette
+        range: ONSpalette,
+        arrow: [ONScolours.oceanBlue, ONScolours.coralPink, ONScolours.grey50]
     }//uses the standard colour palette or time comparison colours
 
     let { 
@@ -73,19 +74,58 @@
     let seriesCount = $derived(new Set(data.map((d) => d[zKey])).size);
     let seriesNames = $derived([...new Set(data.map((d) => d[zKey]))]);
 
+    let Z1 = $derived(seriesNames[0]); // first zKey value
+    let Z2 = $derived(seriesNames[1]); // second zKey value
+
     let dataLink = $derived(
         Object.values(
             data.reduce((d, item) => {
-                const y = item[yKey]
-                const x = item[xKey]
-                const z = item[zKey]
-                if (!d[y]) {
-                d[y] = { [yKey] : y };
+                const y = item[yKey];
+                const x = item[xKey];
+                const z = item[zKey];
+
+            if (!d[y]) {
+            d[y] = { [yKey]: y };
             }
-                d[y][z] = x;
-                return d;
+
+            d[y][z] = x;
+
+            return d;
             }, {})
-        ));
+            ).map(obj => {
+            const a = obj[Z1];
+            const b = obj[Z2];
+
+            let colour = defaultColours.arrow[2];
+
+            if (a != null && b != null) {
+            if (a > b) {
+            colour = defaultColours.arrow[1];
+            } else if (a < b) {
+            colour = defaultColours.arrow[0];
+            }
+            }
+
+            return {
+            ...obj,
+            colour
+            };
+            })
+    );
+
+    // let dataLink = $derived(
+    //     Object.values(
+    //         data.reduce((d, item) => {
+    //             const y = item[yKey]
+    //             const x = item[xKey]
+    //             const z = item[zKey]
+    //             if (!d[y]) {
+    //             d[y] = { [yKey] : y };
+    //         }
+    //             d[y][z] = x;
+    //             return d;
+    //         }, {})
+    //     ));
    
 
     let dataDot = $derived.by(() => {
@@ -177,6 +217,8 @@
         d3.selectAll(".is-left").attr("text-anchor","end")
     });
 
+    $inspect("datalink:", dataLink)
+
 </script>
 
 {#if categories && !smKey}
@@ -237,6 +279,8 @@
     strokeDasharray={(d) => d != 0 ? "2,2" : null}
     ></GridY>
 
+    {#if variant === "range"}
+
     <Link
         data={dataLink}
         x1={seriesNames[0]}
@@ -246,12 +290,16 @@
         strokeWidth={1.5}
     />
 
+    {/if}
+
+   
+    {#if (variant === "simple") || (variant === "comparison") || (variant === "range")}
     <Dot
         data={dataDot}
         x={xKey} 
         fill={(d) => {
             let colour;
-            if(variant == "simple" || variant == "comparison" || (variant == "range")){
+            if((variant == "simple") || (variant == "comparison") || (variant == "range")){
                 colour = colourScheme[d[zKey]]
             } else if(d[yKey] == highlighted){
                 colour = colours[0]
@@ -271,6 +319,22 @@
         {stroke}
         {strokeWidth}
         />
+    {/if}
+
+     {#if variant == "arrow"}
+
+    <Link
+        data={dataLink}
+        x1={seriesNames[0]}
+        x2={seriesNames[1]}
+        y={yKey}
+        stroke={((d) => d.colour)}
+        strokeWidth={1.5}
+        markerStart={"dot"}
+        markerEnd={"arrow"}
+    />
+
+    {/if}
     
     {#if dataLabels}
         <Text
