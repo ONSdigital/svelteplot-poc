@@ -112,20 +112,6 @@
             };
             })
     );
-
-    // let dataLink = $derived(
-    //     Object.values(
-    //         data.reduce((d, item) => {
-    //             const y = item[yKey]
-    //             const x = item[xKey]
-    //             const z = item[zKey]
-    //             if (!d[y]) {
-    //             d[y] = { [yKey] : y };
-    //         }
-    //             d[y][z] = x;
-    //             return d;
-    //         }, {})
-    //     ));
    
 
     let dataDot = $derived.by(() => {
@@ -153,6 +139,7 @@
         if(dataLabels){
             return getLabelPosition({
                 data: dataDot,
+                dataLink: dataLink,
                 xKey: xKey,
                 yKey: yKey,
                 zKey: zKey,
@@ -165,7 +152,7 @@
 
     let categories = $derived(new Set(data.map((d) => d[zKey])));
 
-    let labels = $derived.by(() => {
+       let labels = $derived.by(() => {
         if(dataTextLabels){
             let labelData = [...dataTextLabels]
             labelData.forEach((d) => {
@@ -218,6 +205,7 @@
     });
 
     $inspect("datalink:", dataLink)
+    $inspect("labels:", labels)
 
 </script>
 
@@ -328,9 +316,8 @@
         x1={seriesNames[0]}
         x2={seriesNames[1]}
         y={yKey}
-        stroke={((d) => d.colour)}
-        strokeWidth={1.5}
-        markerStart={"dot"}
+        stroke={(d) => d.colour}
+        strokeWidth={3}
         markerEnd={"arrow"}
     />
 
@@ -347,18 +334,23 @@
             dx={(d) => d.anchor == "end" ? -9 : 9}
             dy={-1}
             fill={(d) => {
-            let colour;
-            if(variant == "simple" || variant == "comparison" || variant == "range"){
-                colour = colourScheme[d[zKey]]
-            } else if(d[yKey] == highlighted){
-                colour = colours[0]
-            } else if(highlighted){
-                colour = ONScolours.grey50
-            } else{ 
-                colour = colours[0]
-            }
-            return colour
-        }}
+                let colour;
+                if(variant == "simple" || variant == "comparison" || variant == "range"){
+                    colour = colourScheme[d[zKey]]
+                } 
+                else if (variant === "arrow") {
+                    colour = d.colour
+                }
+                else if(d[yKey] == highlighted){
+                    colour = colours[0]
+                } else if(highlighted){
+                    colour = ONScolours.grey50
+                } 
+                else{ 
+                    colour = colours[0]
+                }
+                return colour
+            }}
         />
     {/if}
 

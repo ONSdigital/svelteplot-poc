@@ -247,32 +247,47 @@ export function flagCloseXInGroups({
 }
 
 export function getLabelPosition({
-    data,
-    xKey = 'x',
-    yKey = 'y',
-    zKey = 'z',}
-){
-    const rows = data.map((d) => ({ ...d, xMax: false }));
-    const groups = d3.group(rows, (d) => d[yKey]);
+data,
+dataLink,
+xKey = 'x',
+yKey = 'y',
+zKey = 'z',
+}) {
 
-    for (const group of groups.values()) {
-    const series = [...new Set(group.map((d) => d[zKey]))];
-    if(series.length > 2){console.warn("More than 2 series on the chart, turn off chart labels")}
-    
+// Create a lookup map from dataLink using y as the key
+const colourLookup = new Map(
+dataLink.map(d => [d[yKey], d.colour])
+);
 
-    for (let i = 0; i < group.length; i++) {
-            for (let j = i + 1; j < group.length; j++) {
-                const a = group[i];
-                const b = group[j];
-                if (a.xKey > b.xKey) 
-                 {a.xMax = true
-                 b.xMax = false}
-                else 
-                {a.xMax = false
-                 b.xMax = true}
-            }
-    }
+// Add colour to each row
+const rows = data.map((d) => ({
+...d,
+xMax: false,
+colour: colourLookup.get(d[yKey]) // assign colour from dataLink
+}));
 
-    }
-    return rows;
-};
+const groups = d3.group(rows, (d) => d[yKey]);
+
+for (const group of groups.values()) {
+const series = [...new Set(group.map((d) => d[zKey]))];
+if (series.length > 2) {
+console.warn('More than 2 series on the chart, turn off chart labels');
+}
+
+for (let i = 0; i < group.length; i++) {
+for (let j = i + 1; j < group.length; j++) {
+const a = group[i];
+const b = group[j];
+
+if (a[xKey] > b[xKey]) {
+a.xMax = true;
+b.xMax = false;
+} else {
+a.xMax = false;
+b.xMax = true;
+}
+}
+}
+}
+return rows;
+}
