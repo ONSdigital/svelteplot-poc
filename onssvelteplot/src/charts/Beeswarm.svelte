@@ -301,24 +301,4 @@
     :global(.dot path){
         paint-order: stroke fill;
     }
-    .tooltip {
-        position: absolute;
-        pointer-events: none;
-        background: white;
-        /* border: 1px solid #ccc; */
-        padding: 4px 8px;
-        font-size: 14px;
-        transform: translate(10px, -50%);
-    }
-    .tooltip .identifier{
-        font-weight: 600;
-    }
-    .tooltip .value{
-        line-height: 14px;
-        margin-bottom: 6px;
-    }
-    .highlighted{
-        outline: 'white';
-        outline-width: "12px";
-    }
 </style>
