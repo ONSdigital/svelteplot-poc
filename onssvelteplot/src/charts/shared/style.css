@@ -1,3 +1,20 @@
+.bar, .dot, .highlight-bar, .dataLabel, .highlight-bar, line, .tick {
+	transition: all 1s ease-in-out;
+	opacity: 1;
+	animation-name: fadeInOpacity;
+	animation-timing-function: ease-in;
+	animation-duration: 0.5s;
+}
+
+@keyframes fadeInOpacity {
+	0% {
+		opacity: 0;
+	}
+	100% {
+		opacity: 1;
+	}
+}
+
 .tick line, .grid-x line, .grid-y line{
     stroke: #D9D9D9 !important;
     stroke-width: 1px !important;
