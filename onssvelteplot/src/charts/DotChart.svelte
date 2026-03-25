@@ -99,21 +99,36 @@
             let colour = defaultColours.arrow[2];
 
             if (a != null && b != null) {
-            if (a > b) {
-            colour = defaultColours.arrow[1];
+                if (format(xFormat)(a) === format(xFormat)(b)) {
+                colour = defaultColours.arrow[2];
+                } else if (a > b) {
+                colour = defaultColours.arrow[1];
+                } else if (a < b) {
+                colour = defaultColours.arrow[0];
+                }
+                }
+            
+            let marker = "arrow";
+
+            if (a != null && b != null) {
+            if (format(xFormat)(a) === format(xFormat)(b)) {
+            marker = "tick-y";
+            } else if (a > b) {
+            marker = "arrow";
             } else if (a < b) {
-            colour = defaultColours.arrow[0];
+            marker = "arrow";
             }
             }
+
 
             return {
             ...obj,
-            colour
+            colour,
+            marker
             };
             })
     );
-   
-
+    
     let dataDot = $derived.by(() => {
         const scale = d3.scaleLinear()
             .range([0, width - yAxisMargin - margin.right])
@@ -205,7 +220,7 @@
     });
 
     $inspect("datalink:", dataLink)
-    $inspect("labels:", labels)
+    // $inspect("labels:", labels)
 
 </script>
 
@@ -309,10 +324,11 @@
         />
     {/if}
 
-     {#if variant == "arrow"}
+    {#if variant == "arrow"}
 
+    <!-- draw the arrows for non equal values -->
     <Link
-        data={dataLink}
+        data={dataLink.filter(d => d.marker === 'arrow')}
         x1={seriesNames[0]}
         x2={seriesNames[1]}
         y={yKey}
@@ -321,7 +337,20 @@
         markerEnd={"arrow"}
     />
 
+        <!-- draw the arrows for equal values -->
+    <Link
+        data={dataLink.filter(d => d.marker === 'tick-y')}
+        x1={seriesNames[0]}
+        x2={seriesNames[1]}
+        y={yKey}
+        stroke={(d) => d.colour}
+        strokeWidth={3}
+        markerEnd={"tick-y"}
+    />
+
     {/if}
+
+    
     
     {#if dataLabels}
         <Text
