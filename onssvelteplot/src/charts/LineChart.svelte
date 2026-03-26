@@ -55,7 +55,8 @@
         colours = defaultColours[variant],
         children
     } = $props();
-$inspect(data)
+    let categories = $derived(zKey ? new Set(data.map((d) => d[zKey])) : null)
+$inspect(categories)
 </script>
 
 <Plot
@@ -68,5 +69,5 @@ $inspect(data)
         dy={-5}
         lineAnchor="bottom"
         textAnchor="start" />
-    <Line data={data} x="x" y="y" />
+    <Line data={data} x="x" y="y" strokeWidth={3} stroke={(d) => categories ? colours[categories.indexOf(d[zKey])] : colours[0]} />
 </Plot>
