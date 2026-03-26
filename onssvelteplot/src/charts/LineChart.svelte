@@ -1,6 +1,6 @@
     <script>
     
-    import { Plot, GridX, BarX, AxisX, AxisY, Text, RuleX, Pointer, stackX, RectX } from 'svelteplot';
+    import { Plot, AxisY, Line } from 'svelteplot';
     import { format } from "d3-format";
     import { timeParse, timeFormat} from "d3-time-format"
     import * as d3 from 'd3';
@@ -55,5 +55,18 @@
         colours = defaultColours[variant],
         children
     } = $props();
-
+$inspect(data)
 </script>
+
+<Plot
+    marginTop={30}
+    x={{ insetLeft: 25 }}
+    y={{ grid: true }}>
+    <AxisY
+        tickSize={0}
+        tickPadding={0}
+        dy={-5}
+        lineAnchor="bottom"
+        textAnchor="start" />
+    <Line data={data} x="x" y="y" />
+</Plot>
