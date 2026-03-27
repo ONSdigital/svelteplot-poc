@@ -11,8 +11,7 @@
         groupData, 
         stackData, 
         labelPixelWidth, 
-        getChartHeight, 
-        getSeriesHeight,
+        getChartHeight,
         getAxisMargin 
     } from '../js/utils';
     import { ONScolours, ONSpalette, oldONSpalette } from '../js/colours'
@@ -54,19 +53,54 @@
         colours = defaultColours[variant],
         children
     } = $props();
+
+    let chartHeight = $derived(height ? height : getChartHeight({data: data, width: width, aspectRatio: aspectRatio, variant: variant}))
+
+    let domainY = $derived(getContinuousDomain({
+        chartType: 'line',
+        data: data,
+        variant: variant,
+        categoryKey: xKey,
+        valueKey: yKey,
+        xDomain: yDomain
+    }))
+
+    $inspect(domainY)
+
+    let domainX = $derived(xDomain ? xDomain : getCategoricalDomain({
+        data: data, 
+        variant: variant, 
+        sort: null, 
+        sortKey: zSortKey, 
+        valueKey: yKey, 
+        categoryKey: xKey, 
+        groupKey: zKey
+    }))
+
+    let yAxisMargin = $derived(margin.left ? margin.left : getAxisMargin({domain: domainY}))
+
     let categories = $derived(zKey ? [...new Set(data.map((d) => d[zKey]))] : null)
-$inspect(categories)
+
+
 </script>
 
 <Plot
+    marginLeft={yAxisMargin}
+    marginRight={margin.right ? margin.right : null}
+    marginTop={margin.top ? margin.top : null}
+    marginBottom={margin.bottom ? margin.bottom : null}
+    height = {chartHeight} 
     x={{ 
-        tickFormat: (d) => xFormatDate ? timeFormat(xFormat)(timeParse(xFormatDate)(d)) : xFormat ? format(xFormat)(d) : d,
+        label:xAxisLabel ? xAxisLabel : "",
+        tickFormat: (d) => xFormatDate ? timeFormat(xFormat)(timeParse(xFormatDate)(d)) : xFormat ? format(xFormat)(d) : d
     }}
     y={{ 
+        domain: domainY, 
         axis: 'left',
         grid: true,
+        label: yAxisLabel ? yAxisLabel : "",
         tickFormat: (d) => yFormat ? format(yFormat)(d) : d,
-        }}>
+    }}>
     <Line 
         data={data} 
         x="x" 

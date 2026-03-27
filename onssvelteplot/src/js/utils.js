@@ -49,26 +49,40 @@ export function getCategoricalDomain({
 }
 
 export function getContinuousDomain({
+    chartType,
 	data, 
 	xDomain = 'auto', 
 	categoryKey = 'y', 
 	valueKey = 'x', 
 	variant = 'simple'
 }){
-	if(xDomain == "auto" && variant != "stacked"){
-		if(d3.min(data, d => d[valueKey]) < 0){
-			return d3.extent(data, d => d[valueKey]);
-		} else{
-			return [0, d3.max(data, d => d[valueKey])];
-		}
-	} else if(xDomain == "auto" && variant == "stacked"){
-		const categorySums = d3.rollup(
-			data,
-			v => d3.sum(v, d => d[valueKey]),
-			d => d[categoryKey]
-		);
-		return [0, d3.max(categorySums.values())];
-	}
+    const max = d3.max(data, d => d[valueKey])
+    const min = d3.min(data, d => d[valueKey])
+    if(chartType == "line" && xDomain == "auto"){
+        let buffer = (max - min) * 0.5
+        if(d3.min(data, d => d[valueKey]) < 0){
+            return [min,max]
+        } else if(d3.min(data, d => d[valueKey]) - buffer < 0){
+            return [0,max + min]
+        } else{
+            return  [min - buffer, max + buffer]
+        }
+    } else{
+        if(xDomain == "auto" && variant != "stacked"){
+            if(d3.min(data, d => d[valueKey]) < 0){
+                return [min,max];
+            } else{
+                return [0, max];
+            }
+        } else if(xDomain == "auto" && variant == "stacked"){
+            const categorySums = d3.rollup(
+                data,
+                v => d3.sum(v, d => d[valueKey]),
+                d => d[categoryKey]
+            );
+            return [0, d3.max(categorySums.values())];
+        }
+    }
 }
 
 export function groupData(data, key){
@@ -155,16 +169,22 @@ export function getSeriesHeight({
 
 export function getChartHeight({
 	data, 
-	seriesHeight, 
+	seriesHeight,
+    aspectRatio,
+    width,
 	categoryKey = 'y', 
 	groupKey, 
 	variant = 'simple'
 }){
-	if(variant == "clustered"){
-	    return seriesHeight * ([...new Set(data.map((d) => d[categoryKey]))].length * [...new Set(data.map((d) => d[groupKey]))].length)
-	} else{
-        seriesHeight * ([...new Set(data.map((d) => d[categoryKey]))].length)
-	}
+    if(aspectRatio && width){
+        return width / (aspectRatio[0] / aspectRatio[1])
+    } else{
+        if(variant == "clustered"){
+            return seriesHeight * ([...new Set(data.map((d) => d[categoryKey]))].length * [...new Set(data.map((d) => d[groupKey]))].length)
+        } else{
+            seriesHeight * ([...new Set(data.map((d) => d[categoryKey]))].length)
+        }
+    }
 }
 
 export function getAxisMargin({
