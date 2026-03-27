@@ -58,14 +58,20 @@ export function getContinuousDomain({
 }){
     const max = d3.max(data, d => d[valueKey])
     const min = d3.min(data, d => d[valueKey])
-    if(chartType == "line" && xDomain == "auto"){
-        let buffer = (max - min) * 0.5
-        if(d3.min(data, d => d[valueKey]) < 0){
-            return [min,max]
-        } else if(d3.min(data, d => d[valueKey]) - buffer < 0){
-            return [0,max + min]
+    if(chartType == "line"){
+        if(xDomain == "auto"){
+            let buffer = (max - min) * 0.5
+            if(d3.min(data, d => d[valueKey]) < 0){
+                return [min,max]
+            } else if(d3.min(data, d => d[valueKey]) - buffer < 0){
+                return [0,max + min]
+            } else{
+                return  [min - buffer, max + buffer]
+            }
+        } else if(xDomain == "data"){
+            return [min, max]
         } else{
-            return  [min - buffer, max + buffer]
+            return xDomain
         }
     } else{
         if(xDomain == "auto" && variant != "stacked"){
