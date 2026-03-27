@@ -36,12 +36,11 @@
         xAxisLabel,
         yAxisLabel, 
         xDomain,
-        xFormat,
+        xFormat = ".0f",
         xFormatDate,
         xAxisTicks,
         yDomain = "auto",
-        yFormat,
-        yFormatDate,
+        yFormat = ",.0f",
         zFormat,
         zFormatDate,
 		ySort,
@@ -55,19 +54,23 @@
         colours = defaultColours[variant],
         children
     } = $props();
-    let categories = $derived(zKey ? new Set(data.map((d) => d[zKey])) : null)
+    let categories = $derived(zKey ? [...new Set(data.map((d) => d[zKey]))] : null)
 $inspect(categories)
 </script>
 
 <Plot
-    marginTop={30}
-    x={{ insetLeft: 25 }}
-    y={{ grid: true }}>
-    <AxisY
-        tickSize={0}
-        tickPadding={0}
-        dy={-5}
-        lineAnchor="bottom"
-        textAnchor="start" />
-    <Line data={data} x="x" y="y" strokeWidth={3} stroke={(d) => categories ? colours[categories.indexOf(d[zKey])] : colours[0]} />
+    x={{ 
+        tickFormat: (d) => xFormatDate ? timeFormat(xFormat)(timeParse(xFormatDate)(d)) : xFormat ? format(xFormat)(d) : d,
+    }}
+    y={{ 
+        axis: 'left',
+        grid: true,
+        tickFormat: (d) => yFormat ? format(yFormat)(d) : d,
+        }}>
+    <Line 
+        data={data} 
+        x="x" 
+        y="y" 
+        strokeWidth={3} 
+        stroke={(d) => categories ? colours[categories.indexOf(d[zKey])] : colours[0]} />
 </Plot>
