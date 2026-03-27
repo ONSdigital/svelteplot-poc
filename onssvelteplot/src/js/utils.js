@@ -93,7 +93,7 @@ export function getContinuousDomain({
     const min = d3.min(data, d => d[valueKey])
     if(chartType == "line"){
         if(xDomain == "auto"){
-            let buffer = (max - min) * 0.5
+            let buffer = (max - min) * 0.25
             if(d3.min(data, d => d[valueKey]) < 0){
                 return [min,max]
             } else if(d3.min(data, d => d[valueKey]) - buffer < 0){
