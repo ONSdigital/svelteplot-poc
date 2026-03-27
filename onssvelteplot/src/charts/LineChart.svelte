@@ -6,6 +6,7 @@
     import * as d3 from 'd3';
     import { onMount } from 'svelte';
     import { 
+        wrap,
         getCategoricalDomain, 
         getContinuousDomain, 
         groupData, 
@@ -46,7 +47,7 @@
         tooltip,
         height,
         aspectRatio = [16,9],
-        margin = {top: 0, bottom: 0, right: 20}, 
+        margin = {top: 0, bottom: 0, right: !drawLegend && zKey ? null : 20}, 
         colours = defaultColours[variant],
         children
     } = $props();
@@ -76,7 +77,13 @@
 
     let categories = $derived(zKey ? [...new Set(data.map((d) => d[zKey]))] : null)
 
-    let marginRight = $derived(!drawLegend && zKey ? getAxisMargin({domain: categories}) : margin.right)
+    let marginRight = $derived(!drawLegend && zKey && !margin.right ? getAxisMargin({domain: categories}) : margin.right)
+
+    $effect(() => {
+        if(data && margin && !drawLegend && zKey){
+            d3.selectAll(".dataLabel").call(wrap, marginRight)
+        }
+    })
 
 </script>
 
@@ -114,16 +121,16 @@
             fill={(d) => categories ? colours[categories.indexOf(d[zKey])] : colours[0]}
         />
         {#if zKey}
-        <Text
-            data={data.filter((d) => d[xKey] == domainX[domainX.length-1])}
-            x={xKey} 
-            y={yKey}
-            dx={10}
-            text={zKey}
-            textClass="dataLabel"
-            textAnchor="start"
-            fill={(d) => categories ? colours[categories.indexOf(d[zKey])] : colours[0]}
-        />
+            <Text
+                data={data.filter((d) => d[xKey] == domainX[domainX.length-1])}
+                x={xKey} 
+                y={yKey}
+                dx={10}
+                text={zKey}
+                textClass="dataLabel"
+                textAnchor="start"
+                fill={(d) => categories ? colours[categories.indexOf(d[zKey])] : colours[0]}
+            />
         {/if}
     {/if}
 </Plot>
