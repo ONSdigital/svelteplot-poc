@@ -14,7 +14,8 @@
         stackData, 
         labelPixelWidth, 
         getChartHeight,
-        getAxisMargin 
+        getAxisMargin,
+        resolveDataLabelOverlap 
     } from '../js/utils';
     import { ONScolours, ONSpalette, oldONSpalette } from '../js/colours'
     import Legend from "./shared/Legend.svelte"
@@ -56,6 +57,8 @@
         symbols = ['circle', 'square', 'diamond2', 'circle', 'square', 'diamond2'],
         children
     } = $props();
+
+    let plotEl = $state()
 
     let chartHeight = $derived(height ? height : getChartHeight({data: data, width: width, aspectRatio: aspectRatio, variant: variant}))
 
@@ -127,9 +130,16 @@
         }
     })
 
+    $effect(() => {
+        if(data){
+            resolveDataLabelOverlap({container: plotEl, selector: ".dataLabel"});
+        }
+    })
+
     $inspect(data)
 </script>
 
+<div bind:this={plotEl}>
 <Plot
     marginLeft={yAxisMargin}
     marginRight={marginRight}
@@ -163,10 +173,13 @@
                 } else{
                     return ONScolours.grey30
                 }
+            } else if(categories){
+                return colours[categories.indexOf(d[zKey])]
             } else{
-                categories ? colours[categories.indexOf(d[zKey])] : colours[0]} 
+                return colours[0] 
             }
-        }/>
+        }}
+    />
 
     {#if addEndMarkers || addPointMarkers || !drawLegend}
         <Dot
@@ -218,7 +231,7 @@
                 data={categories.length > 6 ? markerData.filter((d) => d[xKey] == domainX[domainX.length-1]) : data.filter((d) => d[xKey] == domainX[domainX.length-1])}
                 x={xKey} 
                 y={yKey}
-                dx={10}
+                dx={15}
                 text={zKey}
                 textClass="dataLabel"
                 textAnchor="start"
@@ -266,3 +279,4 @@
         />
     {/if}
 </Plot>
+</div>

@@ -74,4 +74,4 @@ else
     section#line-chart.Chart 
         prop.chartType line
         prop.data= places.filter((d) => d.areanm === place.areanm || d.areanm === 'Tewkesbury' || d.areanm === 'Stroud' || d.areanm == "Gloucester").toData({y: ["p2010","p2011","p2012","p2013","p2014","p2015","p2016","p2017","p2018","p2019","p2020"], x: ["2010", "2011", "2012", "2013", "2014", "2015", "2016", "2017", "2018", "2019", "2020"] , z: "areanm"})
-        prop.highlighted= place.areanm
+        prop.aspectRatio 16|6

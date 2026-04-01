@@ -1,4 +1,5 @@
 import * as d3 from 'd3';
+import { tick } from 'svelte';
 
 export function wrap(text, width) {
   text.each(function () {
@@ -245,4 +246,62 @@ export function getScreenSize(width){
 	} else{
 		return 'lg'
 	}
+}
+
+function getTranslateY(element) {
+    const ctm = element.getCTM()
+    const yPosition = ctm.f ? ctm.f : 0
+    return yPosition
+}
+
+function setTranslateY(element, newY) {
+  const transform = element.getAttribute('transform');
+  const newTransform = transform
+    ? transform.replace(/translate\(\s*([^,]+?)\s*,\s*[^)]+?\s*\)/, `translate($1, ${newY})`)
+    : `translate(0, ${newY})`;
+  element.setAttribute('transform', newTransform);
+}
+
+export async function resolveDataLabelOverlap({
+    container,
+    selector, 
+    padding = 6
+}){
+  const labels = Array.from(d3.select(container).selectAll(selector));
+  console.log(labels)
+  if (labels.length < 2) return;
+
+   await tick();
+   labels.sort((a, b) => getTranslateY(a) - getTranslateY(b));
+  const MAX_ITERATIONS = 100;
+  const MOVE_THRESHOLD = 1;
+  const STEP = 2;
+
+  for (let iter = 0; iter < MAX_ITERATIONS; iter++) {
+    let moved = false;
+
+    for (let i = 0; i < labels.length - 1; i++) {
+      const a = labels[i];
+      const b = labels[i + 1];
+
+      const aY = getTranslateY(a);
+      const bY = getTranslateY(b);
+      const labelHeight = 14; // approximate from your bbox ascender (~9.5) plus descender
+
+      const overlap = (aY + labelHeight + padding) - bY;
+
+      if (overlap > MOVE_THRESHOLD) {
+        if (aY < bY) {
+          setTranslateY(a, aY - STEP);
+          setTranslateY(b, bY + STEP);
+        } else {
+          setTranslateY(a, aY + STEP);
+          setTranslateY(b, bY - STEP);
+        }
+        moved = true;
+      }
+    }
+
+    if (!moved) break;
+  }
 }
