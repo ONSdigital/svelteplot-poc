@@ -1,5 +1,6 @@
 import * as d3 from 'd3';
 import { tick } from 'svelte';
+import { ONScolours, ONSpalette, oldONSpalette } from './colours.js'
 
 export function wrap(text, width) {
   text.each(function () {
@@ -254,12 +255,29 @@ function getTranslateY(element) {
     return yPosition
 }
 
-function setTranslateY(element, newY) {
-  const transform = element.getAttribute('transform');
+function getTranslateX(element){
+    const ctm = element.getCTM()
+    const xPosition = ctm.e ? ctm.e : 0
+    return xPosition
+}
+
+function setTranslateY(label, newY) {
+  const transform = label.element.getAttribute('transform');
   const newTransform = transform
     ? transform.replace(/translate\(\s*([^,]+?)\s*,\s*[^)]+?\s*\)/, `translate($1, ${newY})`)
     : `translate(0, ${newY})`;
-  element.setAttribute('transform', newTransform);
+  label.element.setAttribute('transform', newTransform);
+  label.newY = newY
+}
+
+function drawElbow(label, xOffset, pointRadius){
+    const points = [
+        `${label.originalX - xOffset + pointRadius},${label.originalY}`,
+        `${label.originalX - xOffset + Math.round(xOffset/2)},${label.originalY}`,
+        `${label.originalX - xOffset + Math.round(xOffset/2)},${label.newY}`,
+        `${label.originalX},${label.newY}`
+    ].join(' ')
+    return points
 }
 
 export async function resolveDataLabelOverlap({
@@ -267,12 +285,15 @@ export async function resolveDataLabelOverlap({
     selector, 
     padding = 6
 }){
-  const labels = Array.from(d3.select(container).selectAll(selector));
-  console.log(labels)
+    let labels = []
+    const labelElements = Array.from(d3.select(container).selectAll(selector));
+    await tick();
+  labelElements.forEach((label,i) => {
+    labels[i] = {originalY: getTranslateY(label), newY: null, originalX: getTranslateX(label), element: label}
+  })
   if (labels.length < 2) return;
 
-   await tick();
-   labels.sort((a, b) => getTranslateY(a) - getTranslateY(b));
+   labels.sort((a, b) => a.originalY - b.originalY);
   const MAX_ITERATIONS = 100;
   const MOVE_THRESHOLD = 1;
   const STEP = 2;
@@ -284,8 +305,8 @@ export async function resolveDataLabelOverlap({
       const a = labels[i];
       const b = labels[i + 1];
 
-      const aY = getTranslateY(a);
-      const bY = getTranslateY(b);
+      const aY = getTranslateY(a.element);
+      const bY = getTranslateY(b.element);
       const labelHeight = 14; // approximate from your bbox ascender (~9.5) plus descender
 
       const overlap = (aY + labelHeight + padding) - bY;
@@ -301,6 +322,21 @@ export async function resolveDataLabelOverlap({
         moved = true;
       }
     }
+
+    d3.select(container).select(".leaderlines").remove()
+
+    const leaderlines = d3.select(container).select(".facet")
+            .append("g")
+            .attr("class","leaderlines")
+    
+    labels.forEach((label) => {
+        if(label.newY){
+            leaderlines.append("polyline")
+                .attr("points", drawElbow(label, 15, 4))
+                .attr("stroke", ONScolours.grey40)
+                .attr("fill","none")
+        }
+    })
 
     if (!moved) break;
   }

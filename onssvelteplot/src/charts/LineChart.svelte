@@ -48,7 +48,7 @@
         dataLabels,
         addEndMarkers = true,
         addPointMarkers = true,
-        drawLegend,
+        drawLegend = smKey ? true : false,
         tooltip,
         height,
         aspectRatio = [16,9],
@@ -171,7 +171,7 @@
                 } else if(d[zKey] == referenceCategory){
                     return ONScolours.skyBlue
                 } else{
-                    return ONScolours.grey30
+                    return ONScolours.grey40
                 }
             } else if(categories){
                 return colours[categories.indexOf(d[zKey])]
@@ -194,7 +194,7 @@
                     } else if(d[zKey] == referenceCategory){
                         return ONScolours.skyBlue
                     } else{
-                        return ONScolours.grey30
+                        return ONScolours.grey40
                     }
                 }
                 else if(categories){
@@ -214,7 +214,7 @@
                     } else if(d[zKey] == referenceCategory){
                         return ONScolours.skyBlue
                     } else{
-                        return ONScolours.grey30
+                        return ONScolours.grey40
                     }
                 }
                 else if(categories){
@@ -242,7 +242,7 @@
                         } else if(d[zKey] == referenceCategory){
                             return ONScolours.skyBlue
                         } else{
-                            return ONScolours.grey30
+                            return ONScolours.grey40
                         }
                     } else if(categories){
                         return colours[categories.indexOf(d[zKey])]
@@ -267,7 +267,7 @@
                     } else if(d[zKey] == referenceCategory){
                         return ONScolours.skyBlue
                     } else{
-                        return ONScolours.grey30
+                        return ONScolours.grey40
                     }
                 }
                 else if(categories){
