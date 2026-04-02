@@ -156,7 +156,7 @@
             if(variant == "stacked"){
                 let stackedData = stackData({data: data, categoryKey: yKey, valueKey: xKey, categories: domainY})
                 stackedData.forEach((d) => {
-                    d.labelWidth = labelPixelWidth(d3.format(xFormat)(d[xKey]))
+                    d.labelWidth = labelPixelWidth(d3.format(xFormat)(d[xKey]), { fontFamily: 'OpenSans', fontSize: '14px', fontWeight: 'bold' })
                     d.barWidth = xScale(d[xKey])
                     d.show = d.barWidth > d.labelWidth ? true : false
                     d.anchor = d[xKey] > 0 ? 'end' : 'start'
@@ -166,7 +166,7 @@
             } else{
                 let labelData = [...data]
                 labelData.forEach((d) => {
-                    d.labelWidth = labelPixelWidth(d3.format(xFormat)(d[xKey]))
+                    d.labelWidth = labelPixelWidth(d3.format(xFormat)(d[xKey]), { fontFamily: 'OpenSans', fontSize: '14px', fontWeight: 'bold' })
                     d.show = true
                     d.anchor = getLabelAnchor(d[xKey],xScale(d[xKey]),d.labelWidth, domainX[0] < 0 ? xScale(0) : 0)
                     d.fill = getLabelFill(d[xKey],xScale(d[xKey]),d.labelWidth, domainX[0] < 0 ? xScale(0) : 0)
