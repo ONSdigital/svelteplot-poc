@@ -203,10 +203,16 @@ export function stackData({
     return stackedData;
 }
 
-export function labelPixelWidth(text){
-	const charPixelWidth = 10
-	text = text.toString()
-	return text.length * charPixelWidth
+// export function labelPixelWidth(text, charPixelWidth = 6){
+// 	text = text.toString()
+// 	return text.length * charPixelWidth
+// }
+
+export function labelPixelWidth(text, { fontFamily = 'OpenSans', fontSize = '14px', fontWeight = 'normal' } = {}) {
+  const canvas = document.createElement('canvas');
+  const ctx = canvas.getContext('2d');
+  ctx.font = `${fontWeight} ${fontSize} ${fontFamily}`;
+  return ctx.measureText(text).width;
 }
 
 export function getSeriesHeight({
@@ -245,10 +251,9 @@ export function getChartHeight({
 
 export function getAxisMargin({
 	domain,
-	charPixelWidth = 8
 }){
 	let lengths = []
-	domain.forEach((d) => lengths.push(labelPixelWidth(d)))
+	domain.forEach((d) => lengths.push(labelPixelWidth(d) + 10))
 	return d3.max(lengths)
 }
 
