@@ -1,4 +1,39 @@
 import * as d3 from 'd3';
+import { tick } from 'svelte';
+import { ONScolours, ONSpalette, oldONSpalette } from './colours.js'
+
+export function wrap(text, width) {
+  text.each(function () {
+    let text = d3.select(this),
+      words = text.text().split(/\s+/).reverse(),
+      word,
+      line = [],
+      lineNumber = 0,
+      lineHeight = 1.1, // ems
+      y = text.attr("y") ? text.attr("y") : 0,
+      x = text.attr("x") ? text.attr("x") : 0,
+      dy = parseFloat(text.attr("dy")),
+      tspan = text.text(null).append("tspan").attr("x", x);
+    while ((word = words.pop())) {
+      line.push(word);
+      tspan.text(line.join(" "));
+      if (tspan.node().getComputedTextLength() > width) {
+        line.pop();
+        tspan.text(line.join(" "));
+        line = [word];
+        tspan = text
+          .append("tspan")
+          .attr("x", x)
+          .attr("dy", lineHeight + "em")
+          .text(word);
+      }
+    }
+    let breaks = text.selectAll("tspan").size();
+    text.attr("y", function () {
+      return y - 6 * (breaks - 1);
+    });
+  });
+}
 
 export function getCategoricalDomain({
     data,
@@ -49,26 +84,60 @@ export function getCategoricalDomain({
 }
 
 export function getContinuousDomain({
+  chartType,
 	data, 
 	xDomain = 'auto', 
 	categoryKey = 'y', 
 	valueKey = 'x', 
 	variant = 'simple'
 }){
-	if(xDomain == "auto" && variant != "stacked"){
-		if(d3.min(data, d => d[valueKey]) < 0){
-			return d3.extent(data, d => d[valueKey]);
-		} else{
-			return [0, d3.max(data, d => d[valueKey])];
-		}
-	} else if(xDomain == "auto" && variant == "stacked"){
-		const categorySums = d3.rollup(
-			data,
-			v => d3.sum(v, d => d[valueKey]),
-			d => d[categoryKey]
-		);
-		return [0, d3.max(categorySums.values())];
-	}
+    const max = d3.max(data, d => d[valueKey])
+    const min = d3.min(data, d => d[valueKey])
+    if(chartType == "line"){
+        if(xDomain == "auto"){
+            let buffer = (max - min) * 0.25
+            if(d3.min(data, d => d[valueKey]) < 0){
+                return [min,max]
+            } else if(d3.min(data, d => d[valueKey]) - buffer < 0){
+                return [0,max + min]
+            } else{
+                return  [min - buffer, max + buffer]
+            }
+        } else if(xDomain == "data"){
+            return [min, max]
+        } else{
+            return xDomain
+        }
+    } else{
+        if(xDomain == "auto" && variant != "stacked"){
+            if(d3.min(data, d => d[valueKey]) < 0){
+                return d3.extent(data, d => d[valueKey]);
+            } else{
+                return [0, d3.max(data, d => d[valueKey])];
+            }
+        } else if(xDomain == "auto" && variant == "stacked"){
+            if(groupKey){
+                const groupedSums = d3.rollup(
+                    data,
+                    v => d3.sum(v, d => d[valueKey]),
+                    d => d[groupKey],
+                    d => d[categoryKey]
+                );
+                const allValues = [...groupedSums.values()].flatMap(group => [...group.values()]);
+                // Sum across categories within each group, then find the max group total
+                return [0, d3.max(allValues)];
+            }
+
+            const categorySums = d3.rollup(
+                data,
+                v => d3.sum(v, d => d[valueKey]),
+                d => d[categoryKey]
+            );
+            return [0, d3.max(categorySums.values())];
+        } else{
+            return xDomain;
+        }
+    }
 }
 
 export function groupData(data, key){
@@ -155,16 +224,22 @@ export function getSeriesHeight({
 
 export function getChartHeight({
 	data, 
-	seriesHeight, 
+	seriesHeight,
+    aspectRatio,
+    width,
 	categoryKey = 'y', 
 	groupKey, 
 	variant = 'simple'
 }){
-	if(variant == "clustered"){
-	    return seriesHeight * ([...new Set(data.map((d) => d[categoryKey]))].length * [...new Set(data.map((d) => d[groupKey]))].length)
-	} else{
-        seriesHeight * ([...new Set(data.map((d) => d[categoryKey]))].length)
-	}
+    if(aspectRatio && width){
+        return width / (aspectRatio[0] / aspectRatio[1])
+    } else{
+        if(variant == "clustered"){
+            return seriesHeight * ([...new Set(data.map((d) => d[categoryKey]))].length * [...new Set(data.map((d) => d[groupKey]))].length)
+        } else{
+            seriesHeight * ([...new Set(data.map((d) => d[categoryKey]))].length)
+        }
+    }
 }
 
 export function getAxisMargin({
@@ -290,4 +365,96 @@ b.xMax = true;
 }
 }
 return rows;
+}
+function getTranslateY(element) {
+    const ctm = element.getCTM()
+    const yPosition = ctm.f ? ctm.f : 0
+    return yPosition
+}
+
+function getTranslateX(element){
+    const ctm = element.getCTM()
+    const xPosition = ctm.e ? ctm.e : 0
+    return xPosition
+}
+
+function setTranslateY(label, newY) {
+  const transform = label.element.getAttribute('transform');
+  const newTransform = transform
+    ? transform.replace(/translate\(\s*([^,]+?)\s*,\s*[^)]+?\s*\)/, `translate($1, ${newY})`)
+    : `translate(0, ${newY})`;
+  label.element.setAttribute('transform', newTransform);
+  label.newY = newY
+}
+
+function drawElbow(label, xOffset, pointRadius){
+    const points = [
+        `${label.originalX - xOffset + pointRadius},${label.originalY}`,
+        `${label.originalX - xOffset + Math.round(xOffset/2)},${label.originalY}`,
+        `${label.originalX - xOffset + Math.round(xOffset/2)},${label.newY}`,
+        `${label.originalX},${label.newY}`
+    ].join(' ')
+    return points
+}
+
+export async function resolveDataLabelOverlap({
+    container,
+    selector, 
+    padding = 6
+}){
+    let labels = []
+    const labelElements = Array.from(d3.select(container).selectAll(selector));
+    await tick();
+  labelElements.forEach((label,i) => {
+    labels[i] = {originalY: getTranslateY(label), newY: null, originalX: getTranslateX(label), element: label}
+  })
+  if (labels.length < 2) return;
+
+   labels.sort((a, b) => a.originalY - b.originalY);
+  const MAX_ITERATIONS = 100;
+  const MOVE_THRESHOLD = 1;
+  const STEP = 2;
+
+  for (let iter = 0; iter < MAX_ITERATIONS; iter++) {
+    let moved = false;
+
+    for (let i = 0; i < labels.length - 1; i++) {
+      const a = labels[i];
+      const b = labels[i + 1];
+
+      const aY = getTranslateY(a.element);
+      const bY = getTranslateY(b.element);
+      const labelHeight = 14; // approximate from your bbox ascender (~9.5) plus descender
+
+      const overlap = (aY + labelHeight + padding) - bY;
+
+      if (overlap > MOVE_THRESHOLD) {
+        if (aY < bY) {
+          setTranslateY(a, aY - STEP);
+          setTranslateY(b, bY + STEP);
+        } else {
+          setTranslateY(a, aY + STEP);
+          setTranslateY(b, bY - STEP);
+        }
+        moved = true;
+      }
+    }
+
+    d3.select(container).select(".leaderlines").remove()
+
+    const leaderlines = d3.select(container).select(".facet")
+            .append("g")
+            .attr("class","leaderlines")
+    
+    labels.forEach((label) => {
+        if(label.newY){
+            leaderlines.append("polyline")
+                .attr("points", drawElbow(label, 15, 4))
+                .attr("stroke", ONScolours.grey40)
+                .attr("fill","none")
+        }
+    })
+
+    if (!moved) break;
+  }
 }
