@@ -100,6 +100,8 @@
         groupKey: zKey
     }))
 
+    $inspect(domainY)
+
     let xScale = $derived(
         d3.scaleLinear().range([0, width-yAxisMargin-margin.right]).domain(domainX)
     )
@@ -150,6 +152,7 @@
         axis: 'left',
         domain: variant == "clustered" ? null : domainY, 
         tickSpacing: 10, 
+        reverse: true,
         label: yAxisLabel ? yAxisLabel : "",
         tickFormat: (d) => variant == "clustered" || smGridPosition > 0 ? "" : yFormatDate ? timeFormat(yFormat)(timeParse(yFormatDate)(d)) : yFormat ? format(yFormat)(d) : d
     }} 
@@ -182,7 +185,6 @@
             insetBottom={-2}
             insetLeft={-yAxisMargin}
             fill={ONScolours.grey20}
-            
             class={"opaque"}
         />
     {/if}
