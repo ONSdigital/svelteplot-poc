@@ -92,7 +92,7 @@
         }
     }
 
-    let hovered = $state();
+    let plotEl = $state();
 
     let categories = $derived(zKey && variant != "simple" ? new Set(data.map((d) => d[zKey])) : null)
 
@@ -178,8 +178,13 @@
         }
     })
 
-    onMount(() => {
-        d3.selectAll(".is-left").attr("text-anchor","end")
+    $effect(() => {
+        if(data){
+            d3.select(plotEl).selectAll(".is-left").attr("text-anchor","end")
+            if(variant == "clustered"){
+                d3.select(plotEl).selectAll(".facet").selectAll(".axis-y").selectAll(".tick").remove()
+            }          
+        }
     })
 
 </script>
@@ -188,6 +193,7 @@
     <Legend {categories} {colourScheme}/>
 {/if}
 
+<div bind:this={plotEl}>
 <Plot 
     marginLeft={yAxisMargin}
     marginRight={margin.right ? margin.right : null}
@@ -305,6 +311,7 @@
         {@render children()}
     {/if}
 </Plot>
+</div>
 
 <style>
 
