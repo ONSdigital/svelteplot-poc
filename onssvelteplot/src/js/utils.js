@@ -263,6 +263,109 @@ export function getScreenSize(width){
 	}
 }
 
+export function flagCloseXInGroups({
+    data,
+    xScale,
+    xKey = 'x',
+    yKey = 'y',
+    zKey = 'z',
+    thresholdPx,
+    dyAdjust,
+}) {
+    if (!Array.isArray(data) || !xScale || typeof xScale !== 'function') {
+        if (Array.isArray(data)) {
+            data.forEach((d) => { d.dy = 0; });
+            return data;
+        }
+        return [];
+    }
+
+    const rows = data.map((d) => ({ ...d, dy: 0 }));
+    const groups = d3.group(rows, (d) => d[yKey]);
+
+    for (const group of groups.values()) {
+        const zValues = [...new Set(group.map((d) => d[zKey]))];
+        if(zValues.length > 1){console.warn("More than 2 series on the chart, turn off chart labels")}
+        const firstZ = zValues.length > 0 ? zValues[0] : null;
+        const secondZ = zValues.length > 0 ? zValues[1] : null;
+        const thirdZ = zValues.length > 0 ? zValues[2] : null;
+
+        group.forEach((d) => {
+            const xRaw = d[xKey];
+            const xValue = typeof xRaw === 'number' ? xRaw : Number(xRaw);
+            const scaledX = xScale(xValue);
+            d.__xScaled = Number.isFinite(scaledX) ? scaledX : NaN;
+        });
+
+        for (let i = 0; i < group.length; i++) {
+            for (let j = i + 1; j < group.length; j++) {
+                const a = group[i];
+                const b = group[j];
+                if (!Number.isFinite(a.__xScaled) || !Number.isFinite(b.__xScaled)) continue;
+                if (Math.abs(a.__xScaled - b.__xScaled) <= thresholdPx) {
+                    if (a[zKey] !== thirdZ) a.dy = a[zKey] === secondZ ? -dyAdjust : -dyAdjust;
+                    if (b[zKey] !== thirdZ) b.dy = b[zKey] === secondZ ? -dyAdjust : -dyAdjust;
+                    if (a[zKey] !== thirdZ) a.dy = a[zKey] === firstZ ? +dyAdjust : -dyAdjust;
+                    if (b[zKey] !== thirdZ) b.dy = b[zKey] === firstZ ? +dyAdjust : -dyAdjust;
+                    }
+                else 
+                {a.dy = 0;
+                 b.dy = 0;   
+                }
+            }
+        }
+
+        group.forEach((d) => { delete d.__xScaled; });
+    
+    }
+    return rows;
+}
+
+export function getLabelPosition({
+data,
+dataLink,
+xKey = 'x',
+yKey = 'y',
+zKey = 'z',
+}) {
+
+// Create a lookup map from dataLink using y as the key
+const colourLookup = new Map(
+dataLink.map(d => [d[yKey], d.colour])
+);
+
+// Add colour to each row
+const rows = data.map((d) => ({
+...d,
+xMax: false,
+colour: colourLookup.get(d[yKey]) // assign colour from dataLink
+}));
+
+const groups = d3.group(rows, (d) => d[yKey]);
+
+for (const group of groups.values()) {
+const series = [...new Set(group.map((d) => d[zKey]))];
+if (series.length > 2) {
+console.warn('More than 2 series on the chart, turn off chart labels');
+}
+
+for (let i = 0; i < group.length; i++) {
+for (let j = i + 1; j < group.length; j++) {
+const a = group[i];
+const b = group[j];
+
+if (a[xKey] > b[xKey]) {
+a.xMax = true;
+b.xMax = false;
+} else {
+a.xMax = false;
+b.xMax = true;
+}
+}
+}
+}
+return rows;
+}
 function getTranslateY(element) {
     const ctm = element.getCTM()
     const yPosition = ctm.f ? ctm.f : 0
