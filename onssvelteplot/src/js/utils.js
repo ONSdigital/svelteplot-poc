@@ -242,7 +242,6 @@ export function getChartHeight({
 export function getAxisMargin({
 	domain,
 }){
-    console.log(domain)
 	let lengths = []
     if(Array.isArray(domain)){
         domain.forEach((d) => lengths.push(labelPixelWidth(d) + 10))

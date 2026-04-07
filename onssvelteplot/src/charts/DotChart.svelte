@@ -227,14 +227,14 @@
 
 </script>
 
-{#if categories && !smKey}
+{#if categories && !smKey && variant != "arrow"}
     <Legend {categories} {colourScheme}/>
 {/if}
 
 <Plot
     marginLeft={yAxisMargin + yAxisBuffer}
     marginRight={marginRight}
-    marginTop={margin.top ? margin.top : null}
+    marginTop={margin.top ? variant == "arrow" ? margin.top + 20 : 20 : null}
     marginBottom={margin.bottom ? margin.bottom : null}
     height = {chartHeight} 
     {width}
@@ -335,28 +335,53 @@
     {/if}
 
     {#if variant == "arrow"}
+    <!-- draw series labels and connectors -->
+         <Text
+            data={[...data].filter((d) => d[yKey] == domainY[domainY.length-1] && seriesNames.includes(d[zKey]))}
+            x={xKey}
+            y={yKey}
+            dy={-20}
+            textAnchor={(d) => {
+                let filteredData = [...dataLink].filter((datum) => datum[yKey] == d[yKey])[0] 
+                if(d[zKey] == seriesNames[0]){
+                    if((filteredData[seriesNames[0]] > filteredData[seriesNames[1]])){
+                        return "start"
+                    } else{
+                        return "end"
+                    }
+                } else{
+                    if((filteredData[seriesNames[0]] > filteredData[seriesNames[1]])){
+                        return "end"
+                    } else{
+                        return "start"
+                    }
+                }
+            }}
+            text={zKey}
+        />
 
-    <!-- draw the arrows for non equal values -->
-    <Link
-        data={dataLink.filter(d => d.marker === 'arrow')}
-        x1={seriesNames[0]}
-        x2={seriesNames[1]}
-        y={yKey}
-        stroke={(d) => d.colour}
-        strokeWidth={3}
-        markerEnd={"arrow"}
-    />
 
-        <!-- draw the arrows for equal values -->
-    <Link
-        data={dataLink.filter(d => d.marker === 'tick-y')}
-        x1={seriesNames[0]}
-        x2={seriesNames[1]}
-        y={yKey}
-        stroke={(d) => d.colour}
-        strokeWidth={3}
-        markerEnd={"tick-y"}
-    />
+        <!-- draw the arrows for non equal values -->
+        <Link
+            data={dataLink.filter(d => d.marker === 'arrow')}
+            x1={seriesNames[0]}
+            x2={seriesNames[1]}
+            y={yKey}
+            stroke={(d) => d.colour}
+            strokeWidth={3}
+            markerEnd={"arrow"}
+        />
+
+            <!-- draw the arrows for equal values -->
+        <Link
+            data={dataLink.filter(d => d.marker === 'tick-y')}
+            x1={seriesNames[0]}
+            x2={seriesNames[1]}
+            y={yKey}
+            stroke={(d) => d.colour}
+            strokeWidth={3}
+            markerEnd={"tick-y"}
+        />
 
     {/if}
 
