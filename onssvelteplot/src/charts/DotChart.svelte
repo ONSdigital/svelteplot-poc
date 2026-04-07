@@ -97,8 +97,8 @@
             return d;
             }, {})
             ).map(obj => {
-            const a = obj[Z1];
-            const b = obj[Z2];
+            let a = obj[Z1];
+            let b = obj[Z2];
 
             let colour = defaultColours.arrow[2];
 
@@ -119,6 +119,7 @@
             marker = "tick-y";
             } else if (a > b) {
             marker = "arrow";
+
             } else if (a < b) {
             marker = "arrow";
             }
@@ -219,11 +220,16 @@
         return symbolsvar;
     });
 
+    let valuePerPixel = $derived.by(() => {
+        const chartWidth = width - yAxisMargin - yAxisBuffer - marginRight
+        const domainExtent = Math.abs(domainX[1] - domainX[0])
+        return domainExtent/chartWidth
+    })
+    $inspect(valuePerPixel)
+
     onMount(() => {
         d3.selectAll(".is-left").attr("text-anchor","end")
     });
-
-    $inspect(domainY)
 
 
 </script>
@@ -355,7 +361,7 @@
         <Link
             data={dataLink.filter(d => d.marker === 'arrow')}
             x1={seriesNames[0]}
-            x2={seriesNames[1]}
+            x2={(d) => d[seriesNames[1]] > d[seriesNames[0]] ? d[seriesNames[1]] - valuePerPixel * 3 : d[seriesNames[1]] + valuePerPixel * 3}
             y={yKey}
             stroke={(d) => d.colour}
             strokeWidth={3}
