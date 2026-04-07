@@ -77,7 +77,6 @@
     let marginRight = $derived(dataLabels && (xDomain == "auto" || xDomain == "data") ? getAxisMargin({domain: d3.format(xFormat)(d3.max(data, d => d[xKey]))}) : margin.right)
 
     let chartHeight = $derived(height ? height : getChartHeight({data: data, seriesHeight: seriesHeight, categoryKey: yKey, groupKey: zKey, variant: variant}))
-    $inspect(chartHeight)
 
     let Z1 = $derived(seriesNames[0]); // first zKey value
     let Z2 = $derived(seriesNames[1]); // second zKey value
@@ -244,6 +243,7 @@
         tickSpacing: 20,
         label: yAxisLabel ? yAxisLabel : "",
         grid: true,
+        reverse: true,
         tickFormat: (d) => variant == "clustered" || smGridPosition > 0 ? "" : yFormat ? format(yFormat)(d) : d,
         axisOptions: {
             dx: -yAxisBuffer
@@ -337,7 +337,7 @@
     {#if variant == "arrow"}
     <!-- draw series labels and connectors -->
          <Text
-            data={[...data].filter((d) => d[yKey] == domainY[domainY.length-1] && seriesNames.includes(d[zKey]))}
+            data={[...data].filter((d) => d[yKey] == domainY[0] && seriesNames.includes(d[zKey]))}
             x={xKey}
             y={yKey}
             dy={-20}
