@@ -352,14 +352,14 @@
         </CustomMark>
 
                 <!-- draw the arrows for non equal values -->
-        <Arrow
+        <Link
             data={dataLink.filter(d => d.marker === 'arrow')}
             x1={seriesNames[0]}
             x2={seriesNames[1]}
             y={yKey}
             stroke={(d) => d.colour}
-            insetEnd={3}
-            class="arrow"
+            strokeWidth={3}
+            markerEnd={"arrow"}
         />
 
             <!-- draw the arrows for equal values -->

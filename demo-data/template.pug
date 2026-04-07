@@ -33,11 +33,10 @@ else
     section#chart-bar.Chart
         prop.chartType bar
         prop.variant clustered
-        prop.data= places.filterBy("parentcd", place.parentcd).toData({y: "areanm", x: ["age0_15_25yrchange", "age16_24_25yrchange", "age25_49_25yrchange", "age50_64_25yrchange", "age65_25yrchange"], z: ["Aged under 16", "Aged 16 to 24", "Aged 25 to 49", "Aged 50 to 64", "Aged 65 and over"]})
+        prop.data= place.toData({y: "areanm", x: ["age0_15_25yrchange", "age16_24_25yrchange", "age25_49_25yrchange", "age50_64_25yrchange", "age65_25yrchange"], z: ["Aged under 16", "Aged 16 to 24", "Aged 25 to 49", "Aged 50 to 64", "Aged 65 and over"]})
         prop.xFormat ,.1%
         prop.dataLabels true
         prop.zKey z
-        prop.highlighted= place.areanm
 
     section#chart-bar.Chart
         prop.chartType bar
@@ -58,6 +57,8 @@ else
         prop.ySort descending
         prop.ySortKey difference
         prop.highlighted= place.areanm
+        prop.xAxisLabel Proportion of population
+        prop.yAxisLabel Upper Tier Local Authority
 
     //- section#chart-bar.Chart
     //-     prop.chartType bar
