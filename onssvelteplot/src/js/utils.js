@@ -42,10 +42,15 @@ export function getCategoricalDomain({
     sortKey,
 	valueKey = 'x',
     categoryKey = 'y',
-    groupKey
+    groupKey = 'z'
 }
 ){
-    if(sort == "ascending" && !sortKey && variant == "stacked"){
+    const comparator = { ascending: d3.ascending, descending: d3.descending }[sort];
+
+    if(sortKey == "difference" && sort && valueKey.length > 1){
+        let sortedData = data.sort((a, b) => comparator(a[valueKey[0]] - a[valueKey[1]], b[valueKey[0]] - b[valueKey[1]]))
+        return [...new Set(sortedData.map((d) => d[categoryKey]))]
+    } else if(!sortKey && sort && variant == "stacked"){
         let sortedData = [];
         [...new Set(data.map((d) => d[categoryKey]))].forEach((category) => {
             sortedData.push({
@@ -53,30 +58,13 @@ export function getCategoricalDomain({
                 sum: d3.sum(data.filter((d) => d[categoryKey] == category).map((d) => d[valueKey]))
             })
         })
-        sortedData = sortedData.sort((a, b) => d3.ascending(a.sum, b.sum))
+        sortedData = sortedData.sort((a, b) => comparator(a.sum, b.sum))
         return [...new Set(sortedData.map((d) => d.category))]
-    } else if(sort == "descending" && !sortKey && variant == "stacked"){
-        let sortedData = [];
-        [...new Set(data.map((d) => d[categoryKey]))].forEach((category) => {
-            sortedData.push({
-                category: category,
-                sum: d3.sum(data.filter((d) => d[categoryKey] == category).map((d) => d[valueKey]))
-            })
-        })
-        sortedData = sortedData.sort((a, b) => d3.descending(a.sum, b.sum))
-        return [...new Set(sortedData.map((d) => d.category))]
-    } else if(sort == "ascending" && !sortKey){
-        let sortedData = data.sort((a, b) => d3.ascending(a[valueKey], b[valueKey]))
+    } else if(!sortKey && sort){
+        let sortedData = data.sort((a, b) => comparator(a[valueKey], b[valueKey]))
         return [...new Set(sortedData.map((d) => d[categoryKey]))]
-    } else if(sort == "descending" && !sortKey){
-        let sortedData = data.sort((a, b) => d3.descending(a[valueKey], b[valueKey]))
-        return [...new Set(sortedData.map((d) => d[categoryKey]))]
-    }
-    else if(sort == "ascending" && sortKey){
-        let sortedData = data.filter((d) => d[groupKey] == sortKey).sort((a, b) => d3.ascending(a[valueKey], b[valueKey]))
-        return [...new Set(sortedData.map((d) => d[categoryKey]))]
-    } else if(sort == "descending" && sortKey){
-        let sortedData = data.filter((d) => d[groupKey] == sortKey).sort((a, b) => d3.descending(a[valueKey], b[valueKey]))
+    } else if(sortKey && sort){
+        let sortedData = data.filter((d) => d[groupKey] == sortKey).sort((a, b) => comparator(a[valueKey], b[valueKey]))
         return [...new Set(sortedData.map((d) => d[categoryKey]))]
     } else{
         return [...new Set(data.map((d) => d[categoryKey]))]

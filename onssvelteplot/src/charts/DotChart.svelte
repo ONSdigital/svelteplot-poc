@@ -35,12 +35,13 @@
     xAxisLabel,
     yAxisLabel, 
     xDomain = "auto",
-    xFormat,
+    xFormat = ".0f",
     yDomain,
     yFormat,
     ySort,
-    zSortKey, 
+    ySortKey, 
     height,
+    seriesHeight = 34,
     margin = {top: 15, bottom: 50, right: 20}, 
     colours = defaultColours[variant],
     radius = 6,
@@ -48,6 +49,9 @@
     strokeWidth = 1.5,
     dataLabels
     } = $props();
+
+    let seriesCount = $derived(new Set(data.map((d) => d[zKey])).size);
+    let seriesNames = $derived([...new Set(data.map((d) => d[zKey]))]);
 
     let domainX = $derived(getContinuousDomain({
         data: data,
@@ -58,21 +62,19 @@
     }));
 
     let domainY = $derived(yDomain ? yDomain : getCategoricalDomain({
-        data: data, 
+        data: ySortKey === "difference" ? dataLink : data, 
         variant: variant, 
         sort: ySort, 
-        sortKey: zSortKey, 
-        valueKey: xKey, 
+        sortKey: ySortKey, 
+        valueKey: ySortKey === "difference" ? seriesNames : xKey, 
         categoryKey: yKey, 
         groupKey: zKey
     }));
 
     let yAxisMargin = $derived(margin.left ? margin.left : getAxisMargin({domain: domainY}));
 
-    let chartHeight = $derived(height ? height : getChartHeight({data: data, cateogryKey: yKey, groupKey: zKey, variant: variant}));
+    let chartHeight = $derived(height ? height : getChartHeight({data: data, seriesHeight: seriesHeight, categoryKey: yKey, groupKey: zKey, variant: variant}))
 
-    let seriesCount = $derived(new Set(data.map((d) => d[zKey])).size);
-    let seriesNames = $derived([...new Set(data.map((d) => d[zKey]))]);
 
     let Z1 = $derived(seriesNames[0]); // first zKey value
     let Z2 = $derived(seriesNames[1]); // second zKey value
@@ -128,6 +130,8 @@
             };
             })
     );
+
+    $inspect(dataLink)
     
     let dataDot = $derived.by(() => {
         const scale = d3.scaleLinear()

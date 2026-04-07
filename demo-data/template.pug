@@ -48,6 +48,16 @@ else
         prop.highlighted= place.areanm
         prop.dataLabels true
 
+    section#arrow-chart.Chart
+        prop.chartType dot
+        prop.variant arrow
+        prop.data= places.filterBy("parentcd", place.parentcd).toData({y: "areanm", x: ["prop_age25_49_2022","prop_age25_49_2047"], z: ["2022", "2047"]})
+        prop.xFormat .1%
+        prop.dataLabels true
+        prop.xDomain 0.25|0.36
+        prop.ySort descending
+        prop.ySortKey difference
+
     //- section#chart-bar.Chart
     //-     prop.chartType bar
     //-     prop.variant simple
