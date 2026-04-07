@@ -83,6 +83,18 @@ text{
   opacity: 0.5;
 }
 
+#arrow {
+    fill: none;
+}
+
+g.arrow path{
+  stroke-width: 3px !important;
+}
+
+marker#arrow path {
+  fill: none !important;
+}
+
 .beeswarm-title{
   font-size: 16px !important;
   fill: "#707071" !important;

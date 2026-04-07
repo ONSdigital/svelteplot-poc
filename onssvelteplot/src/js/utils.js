@@ -48,7 +48,7 @@ export function getCategoricalDomain({
     const comparator = { ascending: d3.ascending, descending: d3.descending }[sort];
 
     if(sortKey == "difference" && sort && valueKey.length > 1){
-        let sortedData = data.sort((a, b) => comparator(a[valueKey[0]] - a[valueKey[1]], b[valueKey[0]] - b[valueKey[1]]))
+        let sortedData = data.sort((a, b) => comparator(a[valueKey[1]] - a[valueKey[0]], b[valueKey[1]] - b[valueKey[0]]))
         return [...new Set(sortedData.map((d) => d[categoryKey]))]
     } else if(!sortKey && sort && variant == "stacked"){
         let sortedData = [];
