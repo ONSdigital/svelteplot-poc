@@ -71,10 +71,13 @@
         groupKey: zKey
     }));
 
+    let yAxisBuffer =  $derived(dataLabels ? getAxisMargin({domain: d3.format(xFormat)(d3.min(data, d => d[xKey]))}) : 0)
     let yAxisMargin = $derived(margin.left ? margin.left : getAxisMargin({domain: domainY}));
 
-    let chartHeight = $derived(height ? height : getChartHeight({data: data, seriesHeight: seriesHeight, categoryKey: yKey, groupKey: zKey, variant: variant}))
+    let marginRight = $derived(dataLabels && (xDomain == "auto" || xDomain == "data") ? getAxisMargin({domain: d3.format(xFormat)(d3.max(data, d => d[xKey]))}) : margin.right)
 
+    let chartHeight = $derived(height ? height : getChartHeight({data: data, seriesHeight: seriesHeight, categoryKey: yKey, groupKey: zKey, variant: variant}))
+    $inspect(chartHeight)
 
     let Z1 = $derived(seriesNames[0]); // first zKey value
     let Z2 = $derived(seriesNames[1]); // second zKey value
@@ -131,8 +134,6 @@
             })
     );
 
-    $inspect(dataLink)
-    
     let dataDot = $derived.by(() => {
         const scale = d3.scaleLinear()
             .range([0, width - yAxisMargin - margin.right])
@@ -223,8 +224,6 @@
         d3.selectAll(".is-left").attr("text-anchor","end")
     });
 
-    $inspect("datalink:", dataLink)
-    // $inspect("labels:", labels)
 
 </script>
 
@@ -233,8 +232,8 @@
 {/if}
 
 <Plot
-    marginLeft={yAxisMargin}
-    marginRight={margin.right ? margin.right : null}
+    marginLeft={yAxisMargin + yAxisBuffer}
+    marginRight={marginRight}
     marginTop={margin.top ? margin.top : null}
     marginBottom={margin.bottom ? margin.bottom : null}
     height = {chartHeight} 
@@ -245,7 +244,10 @@
         tickSpacing: 20,
         label: yAxisLabel ? yAxisLabel : "",
         grid: true,
-         tickFormat: (d) => variant == "clustered" || smGridPosition > 0 ? "" : yFormat ? format(yFormat)(d) : d
+        tickFormat: (d) => variant == "clustered" || smGridPosition > 0 ? "" : yFormat ? format(yFormat)(d) : d,
+        axisOptions: {
+            dx: -yAxisBuffer
+        },
     }}
     x={{ 
         domain: domainX, 
@@ -280,10 +282,14 @@
         />
     {/if}
     
-    <AxisY tickClass={(d) => d == highlighted ? "bold" : null}/>
+    <AxisY 
+        tickClass={(d) => d == highlighted ? "bold" : null}
+        dx={-yAxisBuffer}
+    />
     
     <GridY 
-    strokeDasharray={(d) => d != 0 ? "2,2" : null}
+        strokeDasharray={(d) => d != 0 ? "2,2" : null}
+        x1={domainX[0] - domainX[0] * 0.05}
     ></GridY>
 
     {#if variant === "range"}

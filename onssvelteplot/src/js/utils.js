@@ -72,7 +72,7 @@ export function getCategoricalDomain({
 }
 
 export function getContinuousDomain({
-  chartType,
+    chartType,
 	data, 
 	xDomain = 'auto', 
 	categoryKey = 'y', 
@@ -85,9 +85,9 @@ export function getContinuousDomain({
     if(chartType == "line"){
         if(xDomain == "auto"){
             let buffer = (max - min) * 0.25
-            if(d3.min(data, d => d[valueKey]) < 0){
+            if(min < 0){
                 return [min,max]
-            } else if(d3.min(data, d => d[valueKey]) - buffer < 0){
+            } else if(min - buffer < 0){
                 return [0,max + min]
             } else{
                 return  [min - buffer, max + buffer]
@@ -99,11 +99,13 @@ export function getContinuousDomain({
         }
     } else{
         if(xDomain == "auto" && variant != "stacked"){
-            if(d3.min(data, d => d[valueKey]) < 0){
+            if(min < 0){
                 return d3.extent(data, d => d[valueKey]);
             } else{
-                return [0, d3.max(data, d => d[valueKey])];
+                return [0, max];
             }
+        } else if(xDomain == "data" && variant != "stacked"){
+            return d3.extent(data, d => d[valueKey]);
         } else if(xDomain == "auto" && variant == "stacked"){
             if(groupKey){
                 const groupedSums = d3.rollup(
@@ -232,7 +234,7 @@ export function getChartHeight({
         if(variant == "clustered"){
             return seriesHeight * ([...new Set(data.map((d) => d[categoryKey]))].length * [...new Set(data.map((d) => d[groupKey]))].length)
         } else{
-            seriesHeight * ([...new Set(data.map((d) => d[categoryKey]))].length)
+            return seriesHeight * ([...new Set(data.map((d) => d[categoryKey]))].length)
         }
     }
 }
@@ -240,9 +242,14 @@ export function getChartHeight({
 export function getAxisMargin({
 	domain,
 }){
+    console.log(domain)
 	let lengths = []
-	domain.forEach((d) => lengths.push(labelPixelWidth(d) + 10))
-	return d3.max(lengths)
+    if(Array.isArray(domain)){
+        domain.forEach((d) => lengths.push(labelPixelWidth(d) + 10))
+        return d3.max(lengths)
+    } else{
+        return labelPixelWidth(domain) + 10
+    }
 }
 
 export function getScreenSize(width){

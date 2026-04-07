@@ -54,9 +54,9 @@ else
         prop.data= places.filterBy("parentcd", place.parentcd).toData({y: "areanm", x: ["prop_age25_49_2022","prop_age25_49_2047"], z: ["2022", "2047"]})
         prop.xFormat .1%
         prop.dataLabels true
-        prop.xDomain 0.25|0.36
+        prop.xDomain data
         prop.ySort descending
-        prop.ySortKey difference
+        prop.ySortKey 2047
 
     //- section#chart-bar.Chart
     //-     prop.chartType bar
