@@ -37,16 +37,19 @@
         xAxisLabel,
         yAxisLabel, 
         xDomain = "auto",
-        xFormat,
+        xFormat = ",.0f",
         xFormatDate,
         xAxisTicks,
         yDomain,
         yFormat,
         yFormatDate,
+        zDomain,
         zFormat,
         zFormatDate,
 		ySort,
-        zSortKey, 
+        zSort,
+        zSortKey,
+        ySortKey,
         dataLabels,
         tooltip,
         height,
@@ -57,7 +60,39 @@
         children
     } = $props();
 
-    let hovered = $state();
+    function getLabelAnchor(value,xPosition,labelWidth,xZeroPosition){
+        if(value < 0){
+            if(xPosition + labelWidth > xZeroPosition){
+                return "end"
+            } else{
+                return "start"
+            }
+        } else{
+            if(xPosition - labelWidth > xZeroPosition){
+                return "end"
+            } else{
+                return "start"
+            }
+        }
+    }
+
+    function getLabelFill(value,xPosition,labelWidth, xZeroPosition){
+        if(value < 0){
+            if(xPosition + labelWidth > xZeroPosition){
+                return "#414042"
+            } else{
+                return "#FFFFFF"
+            }
+        } else{
+            if(xPosition - labelWidth > xZeroPosition){
+                return "#FFFFFF"
+            } else{
+                return "#414042"
+            }
+        }
+    }
+
+    let plotEl = $state();
 
     let categories = $derived(zKey && variant != "simple" ? new Set(data.map((d) => d[zKey])) : null)
 
@@ -86,21 +121,29 @@
         xDomain: xDomain
     }))
 
-    let chartHeight = $derived(height ? height : getChartHeight({data: data, seriesHeight: seriesHeight, cateogryKey: yKey, groupKey: zKey, variant: variant}))
+    let chartHeight = $derived(height ? height : getChartHeight({data: data, seriesHeight: seriesHeight, categoryKey: yKey, groupKey: zKey, variant: variant}))
 
-    let barHeight = $derived(seriesHeight ? seriesHeight : getSeriesHeight({data: data, height: height, cateogryKey: yKey, groupKey: zKey, variant: variant}))
+    let barHeight = $derived(seriesHeight ? seriesHeight : getSeriesHeight({data: data, height: height, categoryKey: yKey, groupKey: zKey, variant: variant}))
 
     let domainY = $derived(yDomain ? yDomain : getCategoricalDomain({
         data: data, 
         variant: variant, 
         sort: ySort, 
-        sortKey: zSortKey, 
+        sortKey: ySortKey, 
         valueKey: xKey, 
         categoryKey: yKey, 
         groupKey: zKey
     }))
 
-    $inspect(domainY)
+    let domainZ = $derived(!zKey ? null : zDomain ? zDomain : getCategoricalDomain({
+        data: data,
+        variant: variant,
+        sort: zSort,
+        sortKey: zSortKey,
+        valueKey: xKey,
+        categoryKey: zKey,
+        groupKey: yKey
+    }))
 
     let xScale = $derived(
         d3.scaleLinear().range([0, width-yAxisMargin-margin.right]).domain(domainX)
@@ -109,30 +152,39 @@
     let yAxisMargin = $derived(margin.left ? margin.left : getAxisMargin({domain: domainY}))
 
     let labels = $derived.by(() => {
-        if(variant == "stacked"){
-            let stackedData = stackData({data: data, categoryKey: yKey, valueKey: xKey, categories: domainY})
-            stackedData.forEach((d) => {
-                d.labelWidth = labelPixelWidth(d[xKey])
-                d.barWidth = xScale(d[xKey])
-                d.show = d.barWidth > d.labelWidth ? true : false
-                d.anchor = d[xKey] > 0 ? 'end' : 'start'
-                d.fill = '#FFFFFF'
-            })
-            return stackedData
+        if(xScale){
+            if(variant == "stacked"){
+                let stackedData = stackData({data: data, categoryKey: yKey, valueKey: xKey, categories: domainY})
+                stackedData.forEach((d) => {
+                    d.labelWidth = labelPixelWidth(d3.format(xFormat)(d[xKey]), { fontFamily: 'OpenSans', fontSize: '14px', fontWeight: 'bold' })
+                    d.barWidth = xScale(d[xKey])
+                    d.show = d.barWidth > d.labelWidth ? true : false
+                    d.anchor = d[xKey] > 0 ? 'end' : 'start'
+                    d.fill = '#FFFFFF'
+                })
+                return stackedData
+            } else{
+                let labelData = [...data]
+                labelData.forEach((d) => {
+                    d.labelWidth = labelPixelWidth(d3.format(xFormat)(d[xKey]), { fontFamily: 'OpenSans', fontSize: '14px', fontWeight: 'bold' })
+                    d.show = true
+                    d.anchor = getLabelAnchor(d[xKey],xScale(d[xKey]),d.labelWidth, domainX[0] < 0 ? xScale(0) : 0)
+                    d.fill = getLabelFill(d[xKey],xScale(d[xKey]),d.labelWidth, domainX[0] < 0 ? xScale(0) : 0)
+                })
+                return labelData
+            }
         } else{
-            let labelData = [...data]
-            labelData.forEach((d) => {
-                d.labelWidth = labelPixelWidth(d[xKey])
-                d.show = true
-                d.anchor = xScale(d[xKey]) - d.labelWidth - 14 > 0 ? "end" : "start"
-                d.fill = d.anchor == "end" ? "#FFFFFF" : "#414042"
-            })
-            return labelData
+            return null
         }
     })
 
-    onMount(() => {
-        d3.selectAll(".is-left").attr("text-anchor","end")
+    $effect(() => {
+        if(data){
+            d3.select(plotEl).selectAll(".is-left").attr("text-anchor","end")
+            if(variant == "clustered"){
+                d3.select(plotEl).selectAll(".facet").selectAll(".axis-y").selectAll(".tick").remove()
+            }          
+        }
     })
 
 </script>
@@ -141,6 +193,7 @@
     <Legend {categories} {colourScheme}/>
 {/if}
 
+<div bind:this={plotEl}>
 <Plot 
     marginLeft={yAxisMargin}
     marginRight={margin.right ? margin.right : null}
@@ -150,7 +203,7 @@
     {width}
     y={{ 
         axis: 'left',
-        domain: variant == "clustered" ? null : domainY, 
+        domain: variant == "clustered" ? domainZ : domainY, 
         tickSpacing: 10, 
         reverse: true,
         label: yAxisLabel ? yAxisLabel : "",
@@ -258,6 +311,7 @@
         {@render children()}
     {/if}
 </Plot>
+</div>
 
 <style>
 

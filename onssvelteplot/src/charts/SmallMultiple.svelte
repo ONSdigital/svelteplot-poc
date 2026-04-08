@@ -118,6 +118,7 @@
                     data={data[group]}
                     margin={i % chartEvery == 0 ? smMargin[0]: smMargin[1]}
                     yDomain={domainY}
+                    xDomain={domainX}
                     smGridPosition = {i % chartEvery}
                 />
             {/if}

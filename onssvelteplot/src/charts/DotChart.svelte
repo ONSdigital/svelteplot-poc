@@ -1,5 +1,5 @@
 <script>
-    import { Plot, Dot, RectX, AxisY, GridY, Text, Link } from 'svelteplot';
+    import { Plot, Dot, RectX, AxisY, GridY, Text, Link, Arrow, CustomMark } from 'svelteplot';
     import { format } from "d3-format";
     import * as d3 from 'd3';
     import { onMount } from 'svelte';
@@ -35,12 +35,13 @@
     xAxisLabel,
     yAxisLabel, 
     xDomain = "auto",
-    xFormat,
+    xFormat = ".0f",
     yDomain,
     yFormat,
     ySort,
-    zSortKey, 
+    ySortKey, 
     height,
+    seriesHeight = 34,
     margin = {top: 15, bottom: 50, right: 20}, 
     colours = defaultColours[variant],
     radius = 6,
@@ -48,6 +49,9 @@
     strokeWidth = 1.5,
     dataLabels
     } = $props();
+
+    let seriesCount = $derived(new Set(data.map((d) => d[zKey])).size);
+    let seriesNames = $derived([...new Set(data.map((d) => d[zKey]))]);
 
     let domainX = $derived(getContinuousDomain({
         data: data,
@@ -58,21 +62,21 @@
     }));
 
     let domainY = $derived(yDomain ? yDomain : getCategoricalDomain({
-        data: data, 
+        data: ySortKey === "difference" ? dataLink : data, 
         variant: variant, 
         sort: ySort, 
-        sortKey: zSortKey, 
-        valueKey: xKey, 
+        sortKey: ySortKey, 
+        valueKey: ySortKey === "difference" ? seriesNames : xKey, 
         categoryKey: yKey, 
         groupKey: zKey
     }));
 
+    let yAxisBuffer =  $derived(dataLabels ? getAxisMargin({domain: d3.format(xFormat)(d3.min(data, d => d[xKey]))}) : 0)
     let yAxisMargin = $derived(margin.left ? margin.left : getAxisMargin({domain: domainY}));
 
-    let chartHeight = $derived(height ? height : getChartHeight({data: data, cateogryKey: yKey, groupKey: zKey, variant: variant}));
+    let marginRight = $derived(dataLabels && (xDomain == "auto" || xDomain == "data") ? getAxisMargin({domain: d3.format(xFormat)(d3.max(data, d => d[xKey]))}) : margin.right)
 
-    let seriesCount = $derived(new Set(data.map((d) => d[zKey])).size);
-    let seriesNames = $derived([...new Set(data.map((d) => d[zKey]))]);
+    let chartHeight = $derived(height ? height : getChartHeight({data: data, seriesHeight: seriesHeight, categoryKey: yKey, groupKey: zKey, variant: variant}))
 
     let Z1 = $derived(seriesNames[0]); // first zKey value
     let Z2 = $derived(seriesNames[1]); // second zKey value
@@ -93,8 +97,8 @@
             return d;
             }, {})
             ).map(obj => {
-            const a = obj[Z1];
-            const b = obj[Z2];
+            let a = obj[Z1];
+            let b = obj[Z2];
 
             let colour = defaultColours.arrow[2];
 
@@ -115,6 +119,7 @@
             marker = "tick-y";
             } else if (a > b) {
             marker = "arrow";
+
             } else if (a < b) {
             marker = "arrow";
             }
@@ -128,7 +133,7 @@
             };
             })
     );
-    
+
     let dataDot = $derived.by(() => {
         const scale = d3.scaleLinear()
             .range([0, width - yAxisMargin - margin.right])
@@ -215,23 +220,28 @@
         return symbolsvar;
     });
 
+    let valuePerPixel = $derived.by(() => {
+        const chartWidth = width - yAxisMargin - yAxisBuffer - marginRight
+        const domainExtent = Math.abs(domainX[1] - domainX[0])
+        return domainExtent/chartWidth
+    })
+    $inspect(valuePerPixel)
+
     onMount(() => {
         d3.selectAll(".is-left").attr("text-anchor","end")
     });
 
-    $inspect("datalink:", dataLink)
-    // $inspect("labels:", labels)
 
 </script>
 
-{#if categories && !smKey}
+{#if categories && !smKey && variant != "arrow"}
     <Legend {categories} {colourScheme}/>
 {/if}
 
 <Plot
-    marginLeft={yAxisMargin}
-    marginRight={margin.right ? margin.right : null}
-    marginTop={margin.top ? margin.top : null}
+    marginLeft={yAxisMargin + yAxisBuffer}
+    marginRight={marginRight}
+    marginTop={margin.top ? variant == "arrow" ? margin.top + 20 : 20 : null}
     marginBottom={margin.bottom ? margin.bottom : null}
     height = {chartHeight} 
     {width}
@@ -241,7 +251,11 @@
         tickSpacing: 20,
         label: yAxisLabel ? yAxisLabel : "",
         grid: true,
-         tickFormat: (d) => variant == "clustered" || smGridPosition > 0 ? "" : yFormat ? format(yFormat)(d) : d
+        reverse: true,
+        tickFormat: (d) => variant == "clustered" || smGridPosition > 0 ? "" : yFormat ? format(yFormat)(d) : d,
+        axisOptions: {
+            dx: -yAxisBuffer
+        },
     }}
     x={{ 
         domain: domainX, 
@@ -268,86 +282,130 @@
             y1={yKey}
             y2={yKey}
             fy={yKey}
-            insetTop={-8}
-            insetBottom={-10}
-            insetLeft={-yAxisMargin}
+            insetTop={-seriesHeight/2 + 2}
+            insetBottom={-seriesHeight/2 + 2}
+            insetLeft={-yAxisMargin - yAxisBuffer}
             fill={ONScolours.grey20}
             class={"opaque"}
         />
     {/if}
     
-    <AxisY tickClass={(d) => d == highlighted ? "bold" : null}/>
+    <AxisY 
+        tickClass={(d) => d == highlighted ? "bold" : null}
+        dx={-yAxisBuffer}
+    />
     
     <GridY 
-    strokeDasharray={(d) => d != 0 ? "2,2" : null}
+        strokeDasharray={(d) => d != 0 ? "2,2" : null}
+        x1={domainX[0] - domainX[0] * 0.05}
     ></GridY>
 
     {#if variant === "range"}
-
-    <Link
-        data={dataLink}
-        x1={seriesNames[0]}
-        x2={seriesNames[1]}
-        y={yKey}
-        stroke={ONScolours.grey30}
-        strokeWidth={1.5}
-    />
-
-    {/if}
-
-   
-    {#if (variant === "simple") || (variant === "comparison") || (variant === "range")}
-    <Dot
-        data={dataDot}
-        x={xKey} 
-        fill={(d) => {
-            let colour;
-            if((variant == "simple") || (variant == "comparison") || (variant == "range")){
-                colour = colourScheme[d[zKey]]
-            } else if(d[yKey] == highlighted){
-                colour = colours[0]
-            } else if(highlighted){
-                colour = ONScolours.grey50
-            } else{ 
-                colour = colours[0]
-            }
-            return colour
-        }}
-        y={yKey}
-        dy={(d) => {
-            return d.dy;
-        }}
-        r={+radius}
-        symbol={(d) => symbolScheme[d[zKey]]}
-        {stroke}
-        {strokeWidth}
+        <Link
+            data={dataLink}
+            x1={seriesNames[0]}
+            x2={seriesNames[1]}
+            y={yKey}
+            stroke={ONScolours.grey30}
+            strokeWidth={1.5}
         />
     {/if}
 
+
     {#if variant == "arrow"}
+    <!-- draw series labels and connectors -->
+         <Text
+            data={[...data].filter((d) => d[yKey] == domainY[0] && seriesNames.includes(d[zKey]))}
+            x={xKey}
+            y={yKey}
+            dy={-30}
+            textAnchor={(d) => {
+                let filteredData = [...dataLink].filter((datum) => datum[yKey] == d[yKey])[0] 
+                if(d[zKey] == seriesNames[0]){
+                    if((filteredData[seriesNames[0]] > filteredData[seriesNames[1]])){
+                        return "start"
+                    } else{
+                        return "end"
+                    }
+                } else{
+                    if((filteredData[seriesNames[0]] > filteredData[seriesNames[1]])){
+                        return "end"
+                    } else{
+                        return "start"
+                    }
+                }
+            }}
+            text={zKey}
+        />
 
-    <!-- draw the arrows for non equal values -->
-    <Link
-        data={dataLink.filter(d => d.marker === 'arrow')}
-        x1={seriesNames[0]}
-        x2={seriesNames[1]}
-        y={yKey}
-        stroke={(d) => d.colour}
-        strokeWidth={3}
-        markerEnd={"arrow"}
-    />
+        <CustomMark
+            data={[...data].filter((d) => d[yKey] == domainY[0] && seriesNames.includes(d[zKey]))}
+            x={xKey}
+            y={yKey}
+        >
+            {#snippet marks({records})}
+                {#each records as r}
+                    <line
+                        x1={r.x}
+                        x2={r.x}
+                        y1={r.y}
+                        y2={r.y - 20}
+                        stroke={ONScolours.grey40}
+                        stroke-width={1}
+                    />
+                {/each}
+            {/snippet}
+        </CustomMark>
 
-        <!-- draw the arrows for equal values -->
-    <Link
-        data={dataLink.filter(d => d.marker === 'tick-y')}
-        x1={seriesNames[0]}
-        x2={seriesNames[1]}
-        y={yKey}
-        stroke={(d) => d.colour}
-        strokeWidth={3}
-        markerEnd={"tick-y"}
-    />
+                <!-- draw the arrows for non equal values -->
+        <Link
+            data={dataLink.filter(d => d.marker === 'arrow')}
+            x1={seriesNames[0]}
+            x2={(d) => d[seriesNames[1]] > d[seriesNames[0]] ? d[seriesNames[1]] - valuePerPixel * 3 : d[seriesNames[1]] + valuePerPixel * 3}
+            y={yKey}
+            stroke={(d) => d.colour}
+            strokeWidth={3}
+            markerEnd={"arrow"}
+        />
 
+            <!-- draw the arrows for equal values -->
+        <Link
+            data={dataLink.filter(d => d.marker === 'tick-y')}
+            x1={seriesNames[0]}
+            x2={seriesNames[1]}
+            y={yKey}
+            stroke={(d) => d.colour}
+            strokeWidth={3}
+            markerEnd={"tick-y"}
+        />
+    {/if}
+
+    {#if (variant === "simple") || (variant === "comparison") || (variant === "range")}
+        <Dot
+            data={dataDot}
+            x={xKey} 
+            fill={(d) => {
+                let colour;
+                if((variant == "simple") || (variant == "comparison") || (variant == "range")){
+                    colour = colourScheme[d[zKey]]
+                } else if(d[yKey] == highlighted){
+                    colour = colours[0]
+                } else if(highlighted){
+                    colour = ONScolours.grey50
+                } else{ 
+                    colour = colours[0]
+                }
+                return colour
+            }}
+            y={yKey}
+            dy={(d) => {
+                return d.dy;
+            }}
+            r={+radius}
+            symbol={(d) => symbolScheme[d[zKey]]}
+            {stroke}
+            {strokeWidth}
+            />
     {/if}
 
     
