@@ -167,7 +167,7 @@
     })
 </script>
 
-{#if categories && !smKey && drawLegend}
+{#if categories && !smKey && (drawLegend || categories.length > 6)}
     <Legend items={legendItems}/>
 {/if}
 
