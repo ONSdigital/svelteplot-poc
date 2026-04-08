@@ -26,10 +26,6 @@
     } = $props();
 
     let itemWidth = $derived(((width-yAxisMargin-margin.right) - (chartGap*(chartEvery-1))) / chartEvery)
-    let smMargin = $derived([
-        margin,
-        {left: chartGap, right: margin.right, top: margin.top, bottom: margin.bottom}
-    ])
 
     let categories = $derived(props.zKey && props.variant != "simple" ? new Set(data[Object.keys(data)[0]].map((d) => d[props.zKey])) : null)
 
@@ -63,6 +59,11 @@
     }) : null)
 
     let yAxisMargin = $derived(margin.left ? margin.left : getAxisMargin({domain: domainY}))
+
+    let smMargin = $derived([
+        {left: yAxisMargin, right: margin.right, top: margin.top, bottom: margin.bottom},
+        {left: chartGap, right: margin.right, top: margin.top, bottom: margin.bottom}
+    ])
 
     let allData = $derived.by(() => {
         let dataArr = []
