@@ -41,7 +41,7 @@
     ySort,
     ySortKey, 
     height,
-    seriesHeight = 34,
+    seriesHeight = 40,
     margin = {top: 15, bottom: 50, right: 20}, 
     colours = defaultColours[variant],
     radius = 6,

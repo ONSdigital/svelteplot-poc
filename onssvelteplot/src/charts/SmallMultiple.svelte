@@ -5,7 +5,7 @@
     import DotChart from "./DotChart.svelte";
     import Legend from "./shared/Legend.svelte";
 
-    import { getCategoricalDomain, getContinuousDomain } from '../js/utils';
+    import { getCategoricalDomain, getContinuousDomain, getAxisMargin } from '../js/utils';
     import { ONScolours, ONSpalette, oldONSpalette } from '../js/colours'
 
     let defaultColours = {
@@ -19,13 +19,13 @@
         data,
         size,
         width,
-        margin = {left: 160, right: 10, top: 0, bottom: 0},
+        margin = {right: 10, top: 0, bottom: 0},
         chartEvery = 3,
         chartGap = 5,
         type
     } = $props();
 
-    let itemWidth = $derived(((width-margin.left-margin.right) - (chartGap*(chartEvery-1))) / chartEvery)
+    let itemWidth = $derived(((width-yAxisMargin-margin.right) - (chartGap*(chartEvery-1))) / chartEvery)
     let smMargin = $derived([
         margin,
         {left: chartGap, right: margin.right, top: margin.top, bottom: margin.bottom}
@@ -62,6 +62,8 @@
         groupKey: props.zKey
     }) : null)
 
+    let yAxisMargin = $derived(margin.left ? margin.left : getAxisMargin({domain: domainY}))
+
     let allData = $derived.by(() => {
         let dataArr = []
         let keys = Object.keys(data)
@@ -90,11 +92,11 @@
     {#each Object.keys(data) as group, i}
         <div 
             class="item"
-            width={i % chartEvery == 0 ? itemWidth + margin.left : i % chartEvery == chartEvery ? itemWidth + chartGap + margin.right : itemWidth + chartGap}>
+            width={i % chartEvery == 0 ? itemWidth + yAxisMargin : i % chartEvery == chartEvery ? itemWidth + chartGap + margin.right : itemWidth + chartGap}>
             <div class="title" style:margin-left={i % chartEvery == 0 ? smMargin[0].left+"px": smMargin[1].left+"px"}>{group}</div>
             {#if type.toLowerCase() === "bar"}
                 <BarChart 
-                    width={i % chartEvery == 0 ? itemWidth + margin.left : i % chartEvery == chartEvery ? itemWidth + chartGap + margin.right : itemWidth + chartGap}
+                    width={i % chartEvery == 0 ? itemWidth + yAxisMargin : i % chartEvery == chartEvery ? itemWidth + chartGap + margin.right : itemWidth + chartGap}
                     {...props} 
                     data={data[group]}
                     margin={i % chartEvery == 0 ? smMargin[0]: smMargin[1]}
@@ -104,7 +106,7 @@
                 />
             {:else if type.toLowerCase() === "line"}
                 <LineChart 
-                    width={i % chartEvery == 0 ? itemWidth + margin.left : i % chartEvery == chartEvery ? itemWidth + chartGap + margin.right : itemWidth + chartGap}
+                    width={i % chartEvery == 0 ? itemWidth + yAxisMargin : i % chartEvery == chartEvery ? itemWidth + chartGap + margin.right : itemWidth + chartGap}
                     {...props} 
                     data={data[group]}
                     margin={i % chartEvery == 0 ? smMargin[0]: smMargin[1]}
@@ -113,7 +115,7 @@
                 />
             {:else if type.toLowerCase() === "dot"}
                 <DotChart 
-                    width={i % chartEvery == 0 ? itemWidth + margin.left : i % chartEvery == chartEvery ? itemWidth + chartGap + margin.right : itemWidth + chartGap}
+                    width={i % chartEvery == 0 ? itemWidth + yAxisMargin : i % chartEvery == chartEvery ? itemWidth + chartGap + margin.right : itemWidth + chartGap}
                     {...props} 
                     data={data[group]}
                     margin={i % chartEvery == 0 ? smMargin[0]: smMargin[1]}
