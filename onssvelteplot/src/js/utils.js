@@ -459,3 +459,10 @@ export async function resolveDataLabelOverlap({
     if (!moved) break;
   }
 }
+
+export function createLegendItemsObject(categories, colours){
+    return categories.reduce((obj, key, index) => {
+        obj[key] = colours[index]
+        return obj
+    }, {})
+}

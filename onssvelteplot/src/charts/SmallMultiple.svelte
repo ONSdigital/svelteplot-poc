@@ -86,7 +86,7 @@
 
 </script>
 
-<Legend {categories} {colourScheme}/>
+<!-- <Legend {categories} {colourScheme}/> -->
 
 <div class="flex">
     {#each Object.keys(data) as group, i}

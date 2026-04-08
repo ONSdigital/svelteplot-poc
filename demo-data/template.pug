@@ -98,4 +98,5 @@ else
         prop.data= places.filter((d) => d.areanm != "City of London").toData({y: ["10 year population change","25 year population change"], x: ["change10yr","change25yr"], z: "areanm"})
         prop.highlighted= place.areanm
         prop.xFormat .1%
+        prop.padding= -2
         prop.seriesHeight= 150

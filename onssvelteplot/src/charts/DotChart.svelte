@@ -170,7 +170,7 @@
         }
     });
 
-    let categories = $derived(new Set(data.map((d) => d[zKey])));
+    let categories = $derived([...new Set(data.map((d) => d[zKey]))]);
 
        let labels = $derived.by(() => {
         if(dataTextLabels){
@@ -188,21 +188,12 @@
     });
 
     let colourScheme = $derived.by(() => {
-        let coloursvar;
         if(categories){
-            coloursvar = {}
-            let i = 0
-            categories.forEach((category) => {
-                coloursvar[category] = colours[i]
-                i = i+1
-            })
-        } else if(colours.length > 1){
-            coloursvar = colours[0]
+            return createLegendItemsObject(categories,colours)
         } else{
-            coloursvar = colours
+            return null
         }
-        return coloursvar
-    });
+    })
 
     let symbols = ['circle', 'diamond2', 'square'];
 
@@ -225,7 +216,6 @@
         const domainExtent = Math.abs(domainX[1] - domainX[0])
         return domainExtent/chartWidth
     })
-    $inspect(valuePerPixel)
 
     onMount(() => {
         d3.selectAll(".is-left").attr("text-anchor","end")
@@ -235,7 +225,7 @@
 </script>
 
 {#if categories && !smKey && variant != "arrow"}
-    <Legend {categories} {colourScheme}/>
+    <Legend items={colourScheme}/>
 {/if}
 
 <Plot

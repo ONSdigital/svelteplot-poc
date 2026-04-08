@@ -2,20 +2,21 @@
     <script>
 
         let {
-            categories,
-            colourScheme
+            items
         } = $props()
 
     </script>
     
+{#if items}
     <div id="legend">
-        {#each categories as legendItem, i}
+        {#each Object.keys(items) as item}
             <div class="legend--item">
                 <div
                     class="legend--icon--circle"
-                    style:background-color={colourScheme[legendItem]}
+                    style:background-color={items[item]}
                 />
-                <p class="legend--text">{legendItem}</p>
+                <p class="legend--text">{item}</p>
             </div>
         {/each}
     </div>
+{/if}

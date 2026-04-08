@@ -12,7 +12,8 @@
         labelPixelWidth, 
         getChartHeight, 
         getSeriesHeight,
-        getAxisMargin 
+        getAxisMargin,
+        createLegendItemsObject
     } from '../js/utils';
     import { ONScolours, ONSpalette, oldONSpalette } from '../js/colours'
     import Legend from "./shared/Legend.svelte"
@@ -94,23 +95,14 @@
 
     let plotEl = $state();
 
-    let categories = $derived(zKey && variant != "simple" ? new Set(data.map((d) => d[zKey])) : null)
+    let categories = $derived(zKey && variant != "simple" ? [...new Set(data.map((d) => d[zKey]))] : null)
 
     let colourScheme = $derived.by(() => {
-        let coloursvar;
         if(categories){
-            coloursvar = {}
-            let i = 0
-            categories.forEach((category) => {
-                coloursvar[category] = colours[i]
-                i = i+1
-            })
-        } else if(colours.length > 1){
-            coloursvar = colours[0]
+            return createLegendItemsObject(categories,colours)
         } else{
-            coloursvar = colours
+            return null
         }
-        return coloursvar
     })
 
     let domainX = $derived(getContinuousDomain({
@@ -190,7 +182,7 @@
 </script>
 
 {#if categories && !smKey}
-    <Legend {categories} {colourScheme}/>
+    <Legend items={colourScheme}/>
 {/if}
 
 <div bind:this={plotEl}>
@@ -264,10 +256,6 @@
                     colour = colours[0]
                 }
             }
-
-            // if(variant != 'simple' && highlighted && d[yKey] != highlighted){
-            //     colour = colour + "C7"
-            // }
             return colour
         }}
         stroke={(d) => {

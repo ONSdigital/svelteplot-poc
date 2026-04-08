@@ -13,12 +13,13 @@
         labelPixelWidth, 
         getChartHeight, 
         getSeriesHeight,
-        getAxisMargin 
+        getAxisMargin,
+        createLegendItemsObject
     } from '../js/utils';
     import { ONScolours, ONSpalette, oldONSpalette } from '../js/colours'
     import Legend from "./shared/Legend.svelte"
 
-    let defaultColours = [ONScolours.oceanBlue]
+    let defaultColours = ONScolours.oceanBlue
 
 	let { 
         data, 
@@ -26,7 +27,7 @@
         width,
         variant = "force",
         highlighted = null,
-        legendItemLabel = "Local authorities",
+        otherLegendLabel = "Local authorities",
         smGridPosition,
         smKey,
         xKey = "x", 
@@ -63,36 +64,17 @@
 
     let categories = $derived(yKey ? new Set(data.map((d) => d[yKey])) : null)
 
-    let colourLookup = $derived.by(() => {
-        let coloursvar;
-        coloursvar = {}
-        let i = 0
-        if(colours.length == 1){
-            coloursvar[legendItemLabel] = colours
-        }
-        else{
-            categories.forEach((category) => {
-                coloursvar[category] = colours[i]
-                i = i+1
-            })
-        }
-        if(highlighted){
-            coloursvar[highlighted] = ONScolours.highlightOrange
-        }
-        return coloursvar
-    })
-
-    let legendCategories = $derived.by(() => {
-        const coloursLength = Object.keys(colourLookup).length
-        if(coloursLength == 1){
-            return null
-        } else if(colours.length == 1 && highlighted){
-            return [legendItemLabel, highlighted]
+    let legendItems = $derived.by(() => {
+        let obj;
+        if(!highlighted){
+            obj = createLegendItemsObject(categories,colours)
         } else{
-            return [...categories, highlighted]
+            const legendCategories = [highlighted,otherLegendLabel]
+            const legendColours = [ONScolours.highlightOrange, ...(Array.isArray(colours) ? colours : [colours])]
+            obj = createLegendItemsObject(legendCategories,legendColours)
         }
+        return obj
     })
-
 
     let domainX = $derived(getContinuousDomain({
         data: data,
@@ -161,8 +143,8 @@
 
 </script>
 
-{#if legendCategories}
-    <Legend categories={legendCategories} colourScheme={colourLookup}/>
+{#if legendItems}
+    <Legend items={legendItems}/>
 {/if}
 
 
@@ -190,9 +172,6 @@
         label:xAxisLabel ? xAxisLabel : "",
         tickFormat: (d) => xFormatDate ? timeFormat(xFormat)(timeParse(xFormatDate)(d)) : xFormat ? format(xFormat)(d) : d,
         grid: true
-    }}
-    color={{ 
-        scheme: colours
     }}
 >
     {#each categories as category}
@@ -225,8 +204,8 @@
         dodgeY={{ anchor: dodgeY, padding: padding}}
         fill={(d) => {
             let colour;
-            if(colours.length > 1){
-                colour = colourLookup[d[yKey]]
+            if(Array.isArray(colours)){
+                colour = legendItems[d[yKey]]
             } else{
                 colour = colours
             }

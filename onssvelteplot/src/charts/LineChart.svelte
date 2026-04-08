@@ -15,7 +15,8 @@
         labelPixelWidth, 
         getChartHeight,
         getAxisMargin,
-        resolveDataLabelOverlap 
+        resolveDataLabelOverlap ,
+        createLegendItemsObject
     } from '../js/utils';
     import { ONScolours, ONSpalette, oldONSpalette } from '../js/colours'
     import Legend from "./shared/Legend.svelte"
@@ -49,6 +50,7 @@
         addEndMarkers = true,
         addPointMarkers = true,
         drawLegend = smKey ? true : false,
+        otherLegendLabel = "Other categories",
         tooltip,
         height,
         aspectRatio = [16,9],
@@ -70,8 +72,6 @@
         valueKey: yKey,
         xDomain: yDomain
     }))
-
-    $inspect(domainY)
 
     let domainX = $derived(xDomain ? xDomain : getCategoricalDomain({
         data: data, 
@@ -108,6 +108,36 @@
         return categoryArray
     })
 
+    let legendItems = $derived.by(() => {
+        let obj;
+        if(!highlighted){
+            obj = createLegendItemsObject(categories,colours)
+        } else{
+            if(referenceCategory){
+                const legendCategories = [highlighted,referenceCategory,otherLegendLabel]
+                const legendColours = [ONScolours.oceanBlue,ONScolours.skyBlue,ONScolours.grey40]
+                obj = createLegendItemsObject(legendCategories,legendColours)
+            } else{
+                const legendCategories = [highlighted,otherLegendLabel]
+                const legendColours = [ONScolours.oceanBlue,ONScolours.grey40]
+                obj = createLegendItemsObject(legendCategories,legendColours)
+            }
+        }
+        return obj
+    })
+
+    let legendColours = $derived.by(() => {
+        if(!highlighted){
+            return colours
+        } else{
+            if(referenceCategory){
+                return [ONScolours.oceanBlue,ONScolours.skyBlue,ONScolours.grey40]
+            } else{
+                return [ONScolours.oceanBlue,ONScolours.grey40]
+            }
+        }
+    })
+
     let marginRight = $derived(!drawLegend && zKey && !margin.right ? getAxisMargin({domain: categories}) : margin.right)
 
     let markerData = $derived.by(() => {
@@ -136,6 +166,10 @@
         }
     })
 </script>
+
+{#if categories && !smKey && drawLegend}
+    <Legend items={legendItems}/>
+{/if}
 
 <div bind:this={plotEl}>
 <Plot
