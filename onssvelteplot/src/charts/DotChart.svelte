@@ -318,7 +318,7 @@
             data={[...data].filter((d) => d[yKey] == domainY[0] && seriesNames.includes(d[zKey]))}
             x={xKey}
             y={yKey}
-            dy={-20}
+            dy={-30}
             textAnchor={(d) => {
                 let filteredData = [...dataLink].filter((datum) => datum[yKey] == d[yKey])[0] 
                 if(d[zKey] == seriesNames[0]){
@@ -349,7 +349,7 @@
                         x1={r.x}
                         x2={r.x}
                         y1={r.y}
-                        y2={r.y - 10}
+                        y2={r.y - 20}
                         stroke={ONScolours.grey40}
                         stroke-width={1}
                     />
