@@ -30,35 +30,34 @@ else
         prop.dataLabels true
         prop.highlighted= place.areanm
 
-    section#chart-bar.Chart
-        prop.chartType bar
-        prop.variant clustered
-        prop.data= place.toData({y: "areanm", x: ["age0_15_25yrchange", "age16_24_25yrchange", "age25_49_25yrchange", "age50_64_25yrchange", "age65_25yrchange"], z: ["Aged under 16", "Aged 16 to 24", "Aged 25 to 49", "Aged 50 to 64", "Aged 65 and over"]})
-        prop.xFormat ,.1%
-        prop.dataLabels true
-        prop.zKey z
 
     section#chart-bar.Chart
         prop.chartType bar
         prop.variant stacked
-        prop.data= place.toData({y: ["2022","2022","2022","2022","2022","2032","2032","2032","2032","2032","2042","2042","2042","2042","2042"], x: ["prop_age0_15_2022", "prop_age16_24_2022","prop_age25_49_2022","prop_age50_64_2022","prop_age65_2022","prop_age0_15_2032", "prop_age16_24_2032","prop_age25_49_2032","prop_age50_64_2032","prop_age65_2032","prop_age0_15_2042", "prop_age16_24_2042","prop_age25_49_2042","prop_age50_64_2042","prop_age65_2042"], z: ["Aged under 16", "Aged 16 to 24", "Aged 25 to 49", "Aged 50 to 64", "Aged 65 and over","Aged under 16", "Aged 16 to 24", "Aged 25 to 49", "Aged 50 to 64", "Aged 65 and over","Aged under 16", "Aged 16 to 24", "Aged 25 to 49", "Aged 50 to 64", "Aged 65 and over"]})
+        prop.data= places.filterBy("parentcd", place.parentcd).toData({y: "areanm", x: ["prop_age0_15_2047", "prop_age16_24_2047","prop_age25_49_2047","prop_age50_64_2047","prop_age65_2047"], z: ["Aged under 16", "Aged 16 to 24", "Aged 25 to 49", "Aged 50 to 64", "Aged 65 and over"]})
         prop.xFormat ,.1%
         prop.zKey z
+        prop.ySort descending
+        prop.ySortKey Aged 65 and over
         prop.highlighted= place.areanm
         prop.dataLabels true
 
     section#arrow-chart.Chart
         prop.chartType dot
         prop.variant arrow
-        prop.data= places.filterBy("parentcd", place.parentcd).toData({y: "areanm", x: ["prop_age25_49_2022","prop_age25_49_2047"], z: ["2022", "2047"]})
+        prop.data= place.toData({y: ["Aged under 16", "Aged 16 to 24", "Aged 25 to 49", "Aged 50 to 64", "Aged 65 and over", "Aged under 16", "Aged 16 to 24", "Aged 25 to 49", "Aged 50 to 64", "Aged 65 and over"], x: ["prop_age0_15_2022", "prop_age16_24_2022","prop_age25_49_2022","prop_age50_64_2022","prop_age65_2022","prop_age0_15_2047", "prop_age16_24_2047","prop_age25_49_2047","prop_age50_64_2047","prop_age65_2047"], z: ["2022","2022","2022","2022","2022","2047","2047","2047","2047","2047"]})
         prop.xFormat .1%
         prop.dataLabels true
         prop.xDomain data
-        prop.ySort descending
-        prop.ySortKey difference
-        prop.highlighted= place.areanm
-        prop.xAxisLabel Proportion of population
-        prop.yAxisLabel Upper Tier Local Authority
+
+    section#diverging-sm-chart.Chart
+        prop.chartType bar
+        prop.variant simple
+        prop.data= places.filterBy("parentcd", place.parentcd).toData({y: "areanm", x:["age0_15_25yrchange", "age16_24_25yrchange", "age25_49_25yrchange", "age50_64_25yrchange", "age65_25yrchange"], z: ["Aged under 16", "Aged 16 to 24", "Aged 25 to 49", "Aged 50 to 64", "Aged 65 and over"]})
+        prop.xFormat .1%
+        prop.dataLabels true
+        prop.smKey z
+        prop.chartEvery sm: 1|md: 2|lg: 3
 
     //- section#chart-bar.Chart
     //-     prop.chartType bar
@@ -87,9 +86,10 @@ else
     //-     prop.aspectRatio 16|6
     //-     prop.highlighted= place.areanm
         
-    //- section#beeswarm.Chart
-    //-     prop.chartType beeswarm
-    //-     prop.variant binned
-    //-     prop.data= places.filter((d) => d.areanm != "City of London").toData({y: ["Population change (2018 to 2019)","Population change (2019 to 2020)"], x: ["change2019","change2020"], z: "areanm"})
-    //-     prop.highlighted= place.areanm
-    //-     prop.xFormat .1%
+    section#beeswarm.Chart
+        prop.chartType beeswarm
+        prop.variant force
+        prop.data= places.filter((d) => d.areanm != "City of London").toData({y: ["10 year population change","25 year population change"], x: ["change10yr","change25yr"], z: "areanm"})
+        prop.highlighted= place.areanm
+        prop.xFormat .1%
+        prop.seriesHeight= 150
