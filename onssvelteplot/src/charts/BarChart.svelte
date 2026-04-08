@@ -80,15 +80,15 @@
     function getLabelFill(value,xPosition,labelWidth, xZeroPosition){
         if(value < 0){
             if(xPosition + labelWidth > xZeroPosition){
-                return "#414042"
+                return ONScolours.grey100
             } else{
-                return "#FFFFFF"
+                return ONScolours.white
             }
         } else{
             if(xPosition - labelWidth > xZeroPosition){
-                return "#FFFFFF"
+                return ONScolours.white
             } else{
-                return "#414042"
+                return ONScolours.grey100
             }
         }
     }
@@ -148,20 +148,23 @@
             if(variant == "stacked"){
                 let stackedData = stackData({data: data, categoryKey: yKey, valueKey: xKey, categories: domainY})
                 stackedData.forEach((d) => {
-                    d.labelWidth = labelPixelWidth(d3.format(xFormat)(d[xKey]), { fontFamily: 'OpenSans', fontSize: '14px', fontWeight: 'bold' })
+                    d.labelWidth = labelPixelWidth(d3.format(xFormat)(d[xKey]), { fontFamily: 'OpenSans', fontSize: '14px', fontWeight: 'bold' }) + 8
                     d.barWidth = xScale(d[xKey])
                     d.show = d.barWidth > d.labelWidth ? true : false
                     d.anchor = d[xKey] > 0 ? 'end' : 'start'
-                    d.fill = '#FFFFFF'
+                    d.fill = ONScolours.white
                 })
                 return stackedData
             } else{
                 let labelData = [...data]
                 labelData.forEach((d) => {
                     d.labelWidth = labelPixelWidth(d3.format(xFormat)(d[xKey]), { fontFamily: 'OpenSans', fontSize: '14px', fontWeight: 'bold' })
+                    d.barWidth = xScale(d[xKey])
                     d.show = true
-                    d.anchor = getLabelAnchor(d[xKey],xScale(d[xKey]),d.labelWidth, domainX[0] < 0 ? xScale(0) : 0)
-                    d.fill = getLabelFill(d[xKey],xScale(d[xKey]),d.labelWidth, domainX[0] < 0 ? xScale(0) : 0)
+                    d.anchor = getLabelAnchor(d[xKey], xScale(d[xKey]), d.labelWidth + 4, domainX[0] < 0 ? xScale(0) : 0)
+                    d.labelClashFlag = variant != 'stacked' && d.anchor == 'end' && (xScale(d[xKey]) - d.labelWidth) < xScale(domainX[0]) ? true : false
+                    d.anchor = d.labelClashFlag ? 'start' : d.anchor
+                    d.fill = d.labelClashFlag ? ONScolours.grey100 : getLabelFill(d[xKey],xScale(d[xKey]),d.labelWidth, domainX[0] < 0 ? xScale(0) : 0)
                 })
                 return labelData
             }
@@ -175,7 +178,10 @@
             d3.select(plotEl).selectAll(".is-left").attr("text-anchor","end")
             if(variant == "clustered"){
                 d3.select(plotEl).selectAll(".facet").selectAll(".axis-y").selectAll(".tick").remove()
-            }          
+            }  
+            if(smGridPosition > 0){
+                d3.select(plotEl).select(".axis-y").selectAll(".tick").remove()
+            }        
         }
     })
 
@@ -269,20 +275,11 @@
             }
         }}
     />
-    {#if hover}
-        <Pointer
-            data={data}
-            y={variant == "clustered" ? zKey : yKey}
-            onupdate={(e) => {
-                hovered = e
-                console.log(hovered)
-            }}/>
-    {/if}
 
     {#if dataLabels}
         <Text
             data={labels.filter((d) => d.show == true)}
-            x={variant == "stacked" ? "stackEnd" : xKey} 
+            x={(d) => variant == "stacked" ? d.stackEnd : d.labelClashFlag ? 0 : d[xKey]} 
             y={variant == "clustered" ? zKey : yKey}
             fy={variant == "clustered" ? yKey : null}
             fx={variant == "small-multiple" ? zKey : null}

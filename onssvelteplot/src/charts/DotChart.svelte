@@ -50,6 +50,8 @@
     dataLabels
     } = $props();
 
+    let plotEl = $state()
+
     let seriesCount = $derived(new Set(data.map((d) => d[zKey])).size);
     let seriesNames = $derived([...new Set(data.map((d) => d[zKey]))]);
 
@@ -218,7 +220,9 @@
     })
 
     onMount(() => {
-        d3.selectAll(".is-left").attr("text-anchor","end")
+        if(data){
+            d3.select(plotEl).selectAll(".is-left").attr("text-anchor","end")
+        }
     });
 
 
@@ -228,6 +232,7 @@
     <Legend items={colourScheme}/>
 {/if}
 
+<div bind:this={plotEl}>
 <Plot
     marginLeft={yAxisMargin + yAxisBuffer}
     marginRight={marginRight}
@@ -430,11 +435,8 @@
             }}
         />
     {/if}
-
-  
-
-   
 </Plot>
+</div>
 
 <style>
 
