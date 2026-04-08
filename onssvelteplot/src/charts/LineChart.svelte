@@ -88,14 +88,14 @@
         if(zKey){
             categoryArray = [...new Set(data.map((d) => d[zKey]))]
             if(highlighted){
-                const highlightedIndex = categoryArray.findIndex(obj => obj[zKey] === highlighted);
+                const highlightedIndex = categoryArray.findIndex(obj => obj === highlighted);
                 if (highlightedIndex > -1) {
                     const [highlightedItem] = categoryArray.splice(highlightedIndex, 1);
                     categoryArray.unshift(highlightedItem);
                 }
             
                 if(referenceCategory){
-                    const referenceIndex = categoryArray.findIndex(obj => obj[zKey] === referenceCategory);
+                    const referenceIndex = categoryArray.findIndex(obj => obj === referenceCategory);
                     if (referenceIndex > -1) {
                         const [referenceItem] = categoryArray.splice(referenceIndex, 1);
                         categoryArray.splice(1, 0, referenceItem);
@@ -135,8 +135,6 @@
             resolveDataLabelOverlap({container: plotEl, selector: ".dataLabel"});
         }
     })
-
-    $inspect(data)
 </script>
 
 <div bind:this={plotEl}>
