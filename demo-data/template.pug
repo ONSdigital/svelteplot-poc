@@ -59,6 +59,12 @@ else
         prop.smKey z
         prop.chartEvery sm: 1|md: 2|lg: 3
 
+    section#line-chart.Chart
+        prop.chartType line
+        prop.data= places.filterBy("parentcd", place.parentcd).toData({y: ["p2022","p2023","p2024","p2025","p2026","p2027","p2028","p2029","p2030","p2031","p2032","p2033","p2034","p2035","p2036","p2037","p2038","p2039","p2040","p2041","p2042","p2043","p2044","p2045","p2046","p2047"], x: ["2022","2023","2024","2025","2026","2027","2028","2029","2030","2031","2032","2033","2034","2035","2036","2037","2038","2039","2040","2041","2042","2043","2044","2045","2046","2047"], z: "areanm"})
+        prop.legend false
+        prop.highlighted= place.areanm
+
     //- section#chart-bar.Chart
     //-     prop.chartType bar
     //-     prop.variant simple
