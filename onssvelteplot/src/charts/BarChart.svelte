@@ -257,8 +257,12 @@
                 colour = colours[0]
             } else if(highlighted){
                 colour = ONScolours.grey50
-            } else{ 
-                colour = colours[0]
+            } else{
+                if(d[xKey] < 0 && colours.length > 1){ 
+                    colour = colours[1]
+                } else{
+                    colour = colours[0]
+                }
             }
 
             // if(variant != 'simple' && highlighted && d[yKey] != highlighted){
