@@ -1,6 +1,6 @@
     <script>
     
-    import { Plot, AxisY, Line, Dot, Text } from 'svelteplot';
+    import { Plot, AxisY, Line, Dot, Text, AreaY } from 'svelteplot';
     import { format } from "d3-format";
     import { timeParse, timeFormat} from "d3-time-format"
     import * as d3 from 'd3';
@@ -39,6 +39,7 @@
         xKey = "x", 
         yKey = "y",
         zKey = Object.keys(data[0]).includes('z') && smKey != 'z' ? 'z' : null,
+        ciKeys = Object.keys(data[0]).includes('uci') && Object.keys(data[0]).includes('lci') ? ['lci', 'uci'] : null,
         xAxisLabel,
         yAxisLabel, 
         xDomain,
@@ -47,19 +48,20 @@
         yDomain = "auto",
         yAxisTicks,
         yFormat = ",.0f",
-        dataLabels,
         addEndMarkers = true,
-        addPointMarkers = true,
-        drawLegend = smKey ? true : false,
+        directLabels,
+        addPointMarkers,
         otherLegendLabel = "Other categories",
         tooltip,
         height,
         aspectRatio = [16,9],
-        margin = {top: 0, bottom: 0, right: !drawLegend && zKey ? null : 20}, 
+        margin = {top: 10, bottom: 0, right: directLabels && zKey ? null : 20}, 
         colours = defaultColours[variant],
         symbols = ['circle', 'square', 'diamond2', 'circle', 'square', 'diamond2'],
         children
     } = $props();
+
+    $inspect(data)
 
     let plotEl = $state()
 
@@ -71,7 +73,8 @@
         variant: variant,
         categoryKey: xKey,
         valueKey: yKey,
-        xDomain: yDomain
+        xDomain: yDomain,
+        ciKeys: ciKeys
     }))
 
     let domainX = $derived(xDomain ? xDomain : getCategoricalDomain({
@@ -116,10 +119,13 @@
         colours: colours,
         highlighted: highlighted,
         referenceCategory: referenceCategory,
-        otherLegendLabel: otherLegendLabel
+        otherLegendLabel: otherLegendLabel,
+        confidenceInterval: ciKeys ? ciKeys : null,
+        directLabels: directLabels,
+        symbols: addEndMarkers || addPointMarkers ? symbols : 'circle'
     }))
 
-    let marginRight = $derived(!drawLegend && zKey && !margin.right ? getAxisMargin({domain: highlighted && referenceCategory && categories.length > 6 ? [highlighted, referenceCategory] : highlighted && categories.length > 6 ? [highlighted] : categories}) + 15 : margin.right)
+    let marginRight = $derived(directLabels && zKey && !margin.right ? getAxisMargin({domain: highlighted && referenceCategory && categories.length > 6 ? [highlighted, referenceCategory] : highlighted && categories.length > 6 ? [highlighted] : categories}) + 15 : margin.right)
 
     let markerData = $derived.by(() => {
         let filtered = []
@@ -136,7 +142,7 @@
     })
 
     $effect(() => {
-        if(data && margin && !drawLegend && zKey){
+        if(data && margin && directLabels && zKey){
             d3.select(plotEl).selectAll(".dataLabel").call(wrap, marginRight)
         }
         if(data && (highlighted || referenceCategory)){
@@ -150,9 +156,11 @@
             resolveDataLabelOverlap({container: plotEl, selector: ".dataLabel"});
         }
     })
+
+    $inspect(legendItems)
 </script>
 
-{#if categories && !smKey && (drawLegend || categories.length > 6)}
+{#if legendItems}
     <Legend items={legendItems}/>
 {/if}
 
@@ -174,6 +182,32 @@
         label: yAxisLabel ? yAxisLabel : "",
         tickFormat: (d) => yFormat ? format(yFormat)(d) : d,
     }}>
+
+    {#if ciKeys}
+        <AreaY
+            data={markerData}
+            x={xKey}
+            y1={ciKeys[0]}
+            y2={ciKeys[1]}
+            z={zKey ? zKey : null}
+            opacity={zKey ? 0.3 : 0.65}
+            fill={(d) => {
+                if(highlighted){
+                    if(d[zKey] == highlighted){
+                        return ONScolours.oceanBlue
+                    } else if(d[zKey] == referenceCategory){
+                        return ONScolours.skyBlue
+                    } else{
+                        return ONScolours.grey40
+                    }
+                } else if(categories){
+                    return colours[categories.indexOf(d[zKey])]
+                } else{
+                    return colours[0] 
+                }
+            }}
+        />
+    {/if}
 
     <Line 
         data={data} 
@@ -199,9 +233,9 @@
         }}
     />
 
-    {#if addEndMarkers || addPointMarkers || !drawLegend}
+    {#if addEndMarkers || addPointMarkers}
         <Dot
-            data={categories.length > 6 ? markerData.filter((d) => d[xKey] == domainX[domainX.length - 1]) : data.filter((d) => d[xKey] == domainX[domainX.length - 1])}
+            data={!categories ? data.filter((d) => d[xKey] == domainX[domainX.length - 1]) : categories.length > 6 ? markerData.filter((d) => d[xKey] == domainX[domainX.length - 1]) : data.filter((d) => d[xKey] == domainX[domainX.length - 1])}
             x={xKey}
             y={yKey}
             r={4}          
@@ -216,7 +250,7 @@
                     }
                 }
                 else if(categories){
-                    if(categories.indexOf(d[zKey]) > 2){
+                    if(categories.indexOf(d[zKey]) > 2 || (categories.length < 4 && addPointMarkers)){
                         return "white"
                     } else{
                         return colours[categories.indexOf(d[zKey])]
@@ -244,7 +278,7 @@
             strokeWidth={3}
             symbol={(d) => categories ? symbols[categories.indexOf(d[zKey])] : symbols[0]}
         />
-        {#if zKey}
+        {#if zKey && directLabels}
             <Text
                 data={categories.length > 6 ? markerData.filter((d) => d[xKey] == domainX[domainX.length-1]) : data.filter((d) => d[xKey] == domainX[domainX.length-1])}
                 x={xKey} 
@@ -278,7 +312,7 @@
             x={xKey}
             y={yKey}
             r={4}          
-            fill={(d) => {
+            stroke={(d) => {
                 if(highlighted){
                     if(d[zKey] == highlighted){
                         return ONScolours.oceanBlue
@@ -294,6 +328,9 @@
                     return colours[0]
                 }
             }}
+            strokeWidth={4}
+            fill={ONScolours.white}
+            symbol={(d) => categories ? symbols[categories.indexOf(d[zKey])] : symbols[0]}
         />
     {/if}
 </Plot>

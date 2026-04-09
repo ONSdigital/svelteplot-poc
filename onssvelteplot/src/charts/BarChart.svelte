@@ -106,9 +106,7 @@
         variant: variant,
         categories: categories,
         colours: colours,
-        highlighted: highlighted,
-        referenceCategory: null,
-        otherLegendLabel: null
+        highlighted: highlighted
     }))
 
     let domainX = $derived(getContinuousDomain({
@@ -256,7 +254,7 @@
         fill={(d) => {
             let colour;
             if(variant == "stacked" || variant == "clustered"){
-                colour = colourScheme[d[zKey]]
+                colour = colourScheme[d[zKey]].colour
             } else if(d[yKey] == highlighted){
                 colour = ONScolours.oceanBlue
             } else if(highlighted){

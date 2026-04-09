@@ -135,7 +135,6 @@
             <div class="chart-note">{section.note}</div>
           {/if}
         </div>
-        <ChartActions {section} place={data.place.place} />
       </Grid>
     {:else if section.type === "Summary"}
       <Section
