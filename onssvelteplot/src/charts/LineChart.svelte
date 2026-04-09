@@ -51,7 +51,6 @@
         addEndMarkers = true,
         directLabels,
         addPointMarkers,
-        drawLegend = true,
         otherLegendLabel = "Other categories",
         tooltip,
         height,
@@ -143,7 +142,7 @@
     })
 
     $effect(() => {
-        if(data && margin && !drawLegend && zKey){
+        if(data && margin && directLabels && zKey){
             d3.select(plotEl).selectAll(".dataLabel").call(wrap, marginRight)
         }
         if(data && (highlighted || referenceCategory)){
