@@ -78,10 +78,11 @@ export function getContinuousDomain({
 	categoryKey = 'y', 
 	valueKey = 'x', 
     groupKey,
+    ciKeys,
 	variant = 'simple'
 }){
-    const max = d3.max(data, d => d[valueKey])
-    const min = d3.min(data, d => d[valueKey])
+    const max = ciKeys ? d3.max([d3.max(data, d => d[valueKey]), d3.max(data, d => d[ciKeys[0]]), d3.max(data, d => d[ciKeys[1]])]) : d3.max(data, d => d[valueKey])
+    const min = ciKeys ? d3.min([d3.min(data, d => d[valueKey]), d3.min(data, d => d[ciKeys[0]]), d3.min(data, d => d[ciKeys[1]])]) : d3.min(data, d => d[valueKey])
     if(chartType == "line"){
         if(xDomain == "auto"){
             let buffer = (max - min) * 0.25
@@ -474,38 +475,64 @@ export function getLegendItems({
     colours,
     highlighted,
     referenceCategory,
-    otherLegendLabel
+    otherLegendLabel,
+    confidenceInterval,
+    legend = true,
+    directLabels
 }){
-    let obj;
-    if(chartType == 'line'){
-        if(!highlighted){
-            obj = zip(categories,colours)
-        } else{
-            if(referenceCategory){
-                const legendCategories = [highlighted,referenceCategory,otherLegendLabel]
-                const legendColours = [ONScolours.oceanBlue,ONScolours.skyBlue,ONScolours.grey40]
-                obj = zip(legendCategories,legendColours)
+    if(legend == true){
+        let obj = {};
+        if(chartType == 'line'){
+            if(categories){
+                if(!directLabels){
+                    if(!highlighted){
+                        obj = zip(categories,colours)
+                    } else{
+                        if(referenceCategory){
+                            const legendCategories = [highlighted,referenceCategory,otherLegendLabel]
+                            const legendColours = [ONScolours.oceanBlue,ONScolours.skyBlue,ONScolours.grey40]
+                            obj = zip(legendCategories,legendColours)
+                        } else{
+                            const legendCategories = [highlighted,otherLegendLabel]
+                            const legendColours = [ONScolours.oceanBlue,ONScolours.grey40]
+                            obj = zip(legendCategories,legendColours)
+                        }
+                    }
+                    if(confidenceInterval){
+                        obj["95% confidence interval"] = ONScolours.grey30
+                    }
+                } else{
+                    if(confidenceInterval){
+                        obj["95% confidence interval"] = ONScolours.grey30
+                    } 
+                    if(categories.length > 6){
+                        obj[otherLegendLabel] = ONScolours.grey30
+                    }
+                }
+            } else{
+                if(confidenceInterval){
+                    obj["95% confidence interval"] = Array.isArray(colours) ? colours[0] : colours
+                } else{
+                    obj = null
+                }
+            }
+        } else if(chartType == 'bar' || chartType == 'dot'){
+            if(categories){
+                obj = zip(categories,colours)
+            } else{
+                obj = null
+            }
+        } else if(chartType == 'beeswarm'){
+            if(!highlighted){
+                obj = zip(categories,colours)
             } else{
                 const legendCategories = [highlighted,otherLegendLabel]
-                const legendColours = [ONScolours.oceanBlue,ONScolours.grey40]
+                const legendColours = [ONScolours.highlightOrange, ...(Array.isArray(colours) ? colours : [colours])]
                 obj = zip(legendCategories,legendColours)
             }
         }
-    } else if(chartType == 'bar' || chartType == 'dot'){
-        if(categories){
-            obj = zip(categories,colours)
-        } else{
-            obj = null
-        }
-    } else if(chartType == 'beeswarm'){
-        if(!highlighted){
-            obj = zip(categories,colours)
-        } else{
-            const legendCategories = [highlighted,otherLegendLabel]
-            const legendColours = [ONScolours.highlightOrange, ...(Array.isArray(colours) ? colours : [colours])]
-            obj = zip(legendCategories,legendColours)
-        }
-    }
 
-    return obj
+        return obj
+    }
+    else{ return null }
 }

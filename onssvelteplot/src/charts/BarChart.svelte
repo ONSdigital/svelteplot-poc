@@ -108,7 +108,7 @@
         colours: colours,
         highlighted: highlighted,
         referenceCategory: null,
-        otherLegendLabel: null
+        otherLegendLabel: otherLegendLabel
     }))
 
     let domainX = $derived(getContinuousDomain({
