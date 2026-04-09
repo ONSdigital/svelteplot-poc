@@ -122,7 +122,7 @@
         otherLegendLabel: otherLegendLabel,
         confidenceInterval: ciKeys ? ciKeys : null,
         directLabels: directLabels,
-        symbols: symbols
+        symbols: addEndMarkers || addPointMarkers ? symbols : 'circle'
     }))
 
     let marginRight = $derived(directLabels && zKey && !margin.right ? getAxisMargin({domain: highlighted && referenceCategory && categories.length > 6 ? [highlighted, referenceCategory] : highlighted && categories.length > 6 ? [highlighted] : categories}) + 15 : margin.right)
