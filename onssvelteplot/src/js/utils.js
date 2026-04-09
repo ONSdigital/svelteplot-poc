@@ -461,9 +461,9 @@ export async function resolveDataLabelOverlap({
   }
 }
 
-export function zip(keys, values){
+export function zip(keys, colours, symbols){
     return keys.reduce((obj, key, index) => {
-        obj[key] = values[index]
+        obj[key] = {colour: colours[index], symbol: Array.isArray(symbols) ? symbols[index] : symbols}
         return obj
     }, {})
 }
@@ -473,6 +473,7 @@ export function getLegendItems({
     variant = 'simple',
     categories,
     colours,
+    symbols = 'circle',
     highlighted,
     referenceCategory,
     otherLegendLabel,
@@ -486,49 +487,51 @@ export function getLegendItems({
             if(categories){
                 if(!directLabels){
                     if(!highlighted){
-                        obj = zip(categories,colours)
+                        obj = zip(categories,colours,symbols)
                     } else{
                         if(referenceCategory){
                             const legendCategories = [highlighted,referenceCategory,otherLegendLabel]
                             const legendColours = [ONScolours.oceanBlue,ONScolours.skyBlue,ONScolours.grey40]
-                            obj = zip(legendCategories,legendColours)
+                            const legendSymbols = Array.isArray(symbols) ? [symbols[0], symbols[1], symbols[0]] : symbols
+                            obj = zip(legendCategories,legendColours, legendSymbols)
                         } else{
                             const legendCategories = [highlighted,otherLegendLabel]
                             const legendColours = [ONScolours.oceanBlue,ONScolours.grey40]
-                            obj = zip(legendCategories,legendColours)
+                            const legendSymbols = Array.isArray(symbols) ? symbols[0] : symbols
+                            obj = zip(legendCategories,legendColours, legendSymbols)
                         }
                     }
                     if(confidenceInterval){
-                        obj["95% confidence interval"] = ONScolours.grey30
+                        obj["95% confidence interval"] = {colour: ONScolours.grey30, symbol: 'square'}
                     }
                 } else{
                     if(confidenceInterval){
-                        obj["95% confidence interval"] = ONScolours.grey30
+                        obj["95% confidence interval"] = {colour: ONScolours.grey30, symbol: 'square'}
                     } 
                     if(categories.length > 6){
-                        obj[otherLegendLabel] = ONScolours.grey30
+                        obj[otherLegendLabel] = {colour: ONScolours.grey30, symbol: Array.isArray(symbols) ? symbols[0] : symbols}
                     }
                 }
             } else{
                 if(confidenceInterval){
-                    obj["95% confidence interval"] = Array.isArray(colours) ? colours[0] : colours
+                    obj["95% confidence interval"] = {colour: Array.isArray(colours) ? colours[0] : colours, symbol: 'square'}
                 } else{
                     obj = null
                 }
             }
         } else if(chartType == 'bar' || chartType == 'dot'){
             if(categories){
-                obj = zip(categories,colours)
+                obj = zip(categories,colours,symbols)
             } else{
                 obj = null
             }
         } else if(chartType == 'beeswarm'){
             if(!highlighted){
-                obj = zip(categories,colours)
+                obj = zip(categories,colours,symbols)
             } else{
                 const legendCategories = [highlighted,otherLegendLabel]
                 const legendColours = [ONScolours.highlightOrange, ...(Array.isArray(colours) ? colours : [colours])]
-                obj = zip(legendCategories,legendColours)
+                obj = zip(legendCategories,legendColours,symbols)
             }
         }
 

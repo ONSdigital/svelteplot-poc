@@ -122,7 +122,8 @@
         referenceCategory: referenceCategory,
         otherLegendLabel: otherLegendLabel,
         confidenceInterval: ciKeys ? ciKeys : null,
-        directLabels: directLabels
+        directLabels: directLabels,
+        symbols: symbols
     }))
 
     let marginRight = $derived(directLabels && zKey && !margin.right ? getAxisMargin({domain: highlighted && referenceCategory && categories.length > 6 ? [highlighted, referenceCategory] : highlighted && categories.length > 6 ? [highlighted] : categories}) + 15 : margin.right)
@@ -250,7 +251,7 @@
                     }
                 }
                 else if(categories){
-                    if(categories.indexOf(d[zKey]) > 2){
+                    if(categories.indexOf(d[zKey]) > 2 || (categories.length < 4 && addPointMarkers)){
                         return "white"
                     } else{
                         return colours[categories.indexOf(d[zKey])]
@@ -312,7 +313,7 @@
             x={xKey}
             y={yKey}
             r={4}          
-            fill={(d) => {
+            stroke={(d) => {
                 if(highlighted){
                     if(d[zKey] == highlighted){
                         return ONScolours.oceanBlue
@@ -328,6 +329,9 @@
                     return colours[0]
                 }
             }}
+            strokeWidth={4}
+            fill={ONScolours.white}
+            symbol={(d) => categories ? symbols[categories.indexOf(d[zKey])] : symbols[0]}
         />
     {/if}
 </Plot>
