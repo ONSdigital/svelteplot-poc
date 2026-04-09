@@ -138,7 +138,7 @@
         }
     })
 
-    let marginRight = $derived(!drawLegend && zKey && !margin.right ? getAxisMargin({domain: categories}) : margin.right)
+    let marginRight = $derived(!drawLegend && zKey && !margin.right ? getAxisMargin({domain: highlighted && referenceCategory && categories.length > 6 ? [highlighted, referenceCategory] : highlighted && categories.length > 6 ? [highlighted] : categories}) + 15 : margin.right)
 
     let markerData = $derived.by(() => {
         let filtered = []
@@ -156,7 +156,11 @@
 
     $effect(() => {
         if(data && margin && !drawLegend && zKey){
-            d3.selectAll(".dataLabel").call(wrap, marginRight)
+            d3.select(plotEl).selectAll(".dataLabel").call(wrap, marginRight)
+        }
+        if(data && (highlighted || referenceCategory)){
+            d3.select(plotEl).selectAll(".reference").raise()
+            d3.select(plotEl).selectAll(".highlighted").raise()
         }
     })
 
@@ -195,7 +199,8 @@
         x={xKey} 
         y={yKey}
         z={zKey ? zKey : null}
-        strokeWidth={3} 
+        lineClass={(d) => d.datum[zKey] == highlighted ? 'highlighted' : d.datum[zKey] == referenceCategory ? 'reference' : ''}
+        strokeWidth={3}
         stroke={(d) => {
             if(highlighted){
                 if(d[zKey] == highlighted){
