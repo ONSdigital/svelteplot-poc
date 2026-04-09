@@ -460,9 +460,52 @@ export async function resolveDataLabelOverlap({
   }
 }
 
-export function createLegendItemsObject(categories, colours){
-    return categories.reduce((obj, key, index) => {
-        obj[key] = colours[index]
+export function zip(keys, values){
+    return keys.reduce((obj, key, index) => {
+        obj[key] = values[index]
         return obj
     }, {})
+}
+
+export function getLegendItems({
+    chartType,
+    variant = 'simple',
+    categories,
+    colours,
+    highlighted,
+    referenceCategory,
+    otherLegendLabel
+}){
+    let obj;
+    if(chartType == 'line'){
+        if(!highlighted){
+            obj = zip(categories,colours)
+        } else{
+            if(referenceCategory){
+                const legendCategories = [highlighted,referenceCategory,otherLegendLabel]
+                const legendColours = [ONScolours.oceanBlue,ONScolours.skyBlue,ONScolours.grey40]
+                obj = zip(legendCategories,legendColours)
+            } else{
+                const legendCategories = [highlighted,otherLegendLabel]
+                const legendColours = [ONScolours.oceanBlue,ONScolours.grey40]
+                obj = zip(legendCategories,legendColours)
+            }
+        }
+    } else if(chartType == 'bar' || chartType == 'dot'){
+        if(categories){
+            obj = zip(categories,colours)
+        } else{
+            obj = null
+        }
+    } else if(chartType == 'beeswarm'){
+        if(!highlighted){
+            obj = zip(categories,colours)
+        } else{
+            const legendCategories = [highlighted,otherLegendLabel]
+            const legendColours = [ONScolours.highlightOrange, ...(Array.isArray(colours) ? colours : [colours])]
+            obj = zip(legendCategories,legendColours)
+        }
+    }
+
+    return obj
 }

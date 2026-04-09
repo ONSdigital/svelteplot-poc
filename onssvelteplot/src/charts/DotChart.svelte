@@ -10,10 +10,13 @@
             getAxisMargin,
             flagCloseXInGroups,
             labelPixelWidth,
-            getLabelPosition
+            getLabelPosition,
+            getLegendItems
         } from '../js/utils';
     import { ONScolours, ONSpalette } from '../js/colours';
     import Legend from "./shared/Legend.svelte";
+
+    const type = 'dot'
 
     let defaultColours = {
         simple: ONSpalette,
@@ -189,13 +192,15 @@
         }
     });
 
-    let colourScheme = $derived.by(() => {
-        if(categories){
-            return createLegendItemsObject(categories,colours)
-        } else{
-            return null
-        }
-    })
+    let colourScheme = $derived(getLegendItems({
+        chartType: type,
+        variant: variant,
+        categories: categories,
+        colours: colours,
+        highlighted: highlighted,
+        referenceCategory: null,
+        otherLegendLabel: null
+    }))
 
     let symbols = ['circle', 'diamond2', 'square'];
 

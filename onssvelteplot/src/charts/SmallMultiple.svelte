@@ -5,7 +5,12 @@
     import DotChart from "./DotChart.svelte";
     import Legend from "./shared/Legend.svelte";
 
-    import { getCategoricalDomain, getContinuousDomain, getAxisMargin } from '../js/utils';
+    import { 
+        getCategoricalDomain, 
+        getContinuousDomain, 
+        getAxisMargin, 
+        getLegendItems
+    } from '../js/utils';
     import { ONScolours, ONSpalette, oldONSpalette } from '../js/colours'
 
     let defaultColours = {
@@ -31,22 +36,15 @@
 
     let colours = $derived(props.colours ? props.colours : defaultColours[props.variant])
 
-    let colourScheme = $derived.by(() => {
-        let coloursvar;
-        if(categories){
-            coloursvar = {}
-            let i = 0
-            categories.forEach((category) => {
-                coloursvar[category] = colours[i]
-                i = i+1
-            })
-        } else if(colours.length > 1){
-            coloursvar = colours[0]
-        } else{
-            coloursvar = colours
-        }
-        return coloursvar
-    })
+    let legendItems = $derived(getLegendItems({
+        chartType: type,
+        variant: props.variant,
+        categories: categories,
+        colours: colours,
+        highlighted: typeof props.highlighted !== 'undefined' ? null : props.highlighted,
+        referenceCategory: typeof props.referenceCategory !== 'undefined' ? null : props.referenceCategory,
+        otherLegendLabel: typeof props.otherLegendLabel !== 'undefined' ? null : props.otherLegendLabel,
+    }))
 
     let domainY = $derived(type == 'bar' && !props.yDomain ? getCategoricalDomain({
         data: data[Object.keys(data)[0]], 
@@ -87,7 +85,7 @@
 
 </script>
 
-<!-- <Legend {categories} {colourScheme}/> -->
+<Legend items={legendItems}/>
 
 <div class="flex">
     {#each Object.keys(data) as group, i}

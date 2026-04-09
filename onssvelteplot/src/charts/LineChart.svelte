@@ -15,12 +15,13 @@
         labelPixelWidth, 
         getChartHeight,
         getAxisMargin,
-        resolveDataLabelOverlap ,
-        createLegendItemsObject
+        resolveDataLabelOverlap,
+        getLegendItems
     } from '../js/utils';
     import { ONScolours, ONSpalette, oldONSpalette } from '../js/colours'
     import Legend from "./shared/Legend.svelte"
 
+    const type = 'line'
 
     let defaultColours = {
         simple: ONSpalette,
@@ -108,35 +109,15 @@
         return categoryArray
     })
 
-    let legendItems = $derived.by(() => {
-        let obj;
-        if(!highlighted){
-            obj = createLegendItemsObject(categories,colours)
-        } else{
-            if(referenceCategory){
-                const legendCategories = [highlighted,referenceCategory,otherLegendLabel]
-                const legendColours = [ONScolours.oceanBlue,ONScolours.skyBlue,ONScolours.grey40]
-                obj = createLegendItemsObject(legendCategories,legendColours)
-            } else{
-                const legendCategories = [highlighted,otherLegendLabel]
-                const legendColours = [ONScolours.oceanBlue,ONScolours.grey40]
-                obj = createLegendItemsObject(legendCategories,legendColours)
-            }
-        }
-        return obj
-    })
-
-    let legendColours = $derived.by(() => {
-        if(!highlighted){
-            return colours
-        } else{
-            if(referenceCategory){
-                return [ONScolours.oceanBlue,ONScolours.skyBlue,ONScolours.grey40]
-            } else{
-                return [ONScolours.oceanBlue,ONScolours.grey40]
-            }
-        }
-    })
+    let legendItems = $derived(getLegendItems({
+        chartType: type,
+        variant: variant,
+        categories: categories,
+        colours: colours,
+        highlighted: highlighted,
+        referenceCategory: referenceCategory,
+        otherLegendLabel: otherLegendLabel
+    }))
 
     let marginRight = $derived(!drawLegend && zKey && !margin.right ? getAxisMargin({domain: highlighted && referenceCategory && categories.length > 6 ? [highlighted, referenceCategory] : highlighted && categories.length > 6 ? [highlighted] : categories}) + 15 : margin.right)
 

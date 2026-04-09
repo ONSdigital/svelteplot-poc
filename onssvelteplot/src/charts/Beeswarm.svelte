@@ -14,10 +14,12 @@
         getChartHeight, 
         getSeriesHeight,
         getAxisMargin,
-        createLegendItemsObject
+        getLegendItems
     } from '../js/utils';
     import { ONScolours, ONSpalette, oldONSpalette } from '../js/colours'
     import Legend from "./shared/Legend.svelte"
+
+    const type = 'beeswarm'
 
     let defaultColours = ONScolours.oceanBlue
 
@@ -64,17 +66,15 @@
 
     let categories = $derived(yKey ? new Set(data.map((d) => d[yKey])) : null)
 
-    let legendItems = $derived.by(() => {
-        let obj;
-        if(!highlighted){
-            obj = createLegendItemsObject(categories,colours)
-        } else{
-            const legendCategories = [highlighted,otherLegendLabel]
-            const legendColours = [ONScolours.highlightOrange, ...(Array.isArray(colours) ? colours : [colours])]
-            obj = createLegendItemsObject(legendCategories,legendColours)
-        }
-        return obj
-    })
+    let legendItems = $derived(getLegendItems({
+        chartType: type,
+        variant: variant,
+        categories: categories,
+        colours: colours,
+        highlighted: highlighted,
+        referenceCategory: null,
+        otherLegendLabel: otherLegendLabel
+    }))
 
     let domainX = $derived(getContinuousDomain({
         data: data,

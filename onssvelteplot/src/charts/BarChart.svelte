@@ -13,10 +13,12 @@
         getChartHeight, 
         getSeriesHeight,
         getAxisMargin,
-        createLegendItemsObject
+        getLegendItems
     } from '../js/utils';
     import { ONScolours, ONSpalette, oldONSpalette } from '../js/colours'
     import Legend from "./shared/Legend.svelte"
+
+    const type = 'bar'
 
     let defaultColours = {
         simple: [ONScolours.positive, ONScolours.negative],
@@ -29,7 +31,8 @@
         size,
         width,
         variant = "simple",
-        highlighted = null,
+        highlighted,
+        referenceCategory,
         smGridPosition,
         smKey,
         xKey = "x", 
@@ -97,13 +100,16 @@
 
     let categories = $derived(zKey && variant != "simple" ? [...new Set(data.map((d) => d[zKey]))] : null)
 
-    let colourScheme = $derived.by(() => {
-        if(categories){
-            return createLegendItemsObject(categories,colours)
-        } else{
-            return null
-        }
-    })
+
+    let colourScheme = $derived(getLegendItems({
+        chartType: type,
+        variant: variant,
+        categories: categories,
+        colours: colours,
+        highlighted: highlighted,
+        referenceCategory: null,
+        otherLegendLabel: null
+    }))
 
     let domainX = $derived(getContinuousDomain({
         data: data,
@@ -252,9 +258,13 @@
             if(variant == "stacked" || variant == "clustered"){
                 colour = colourScheme[d[zKey]]
             } else if(d[yKey] == highlighted){
-                colour = colours[0]
+                colour = ONScolours.oceanBlue
             } else if(highlighted){
-                colour = ONScolours.grey50
+                if(d[yKey] == referenceCategory){
+                    colour = ONScolours.skyBlue
+                } else{
+                    colour = ONScolours.grey50
+                }
             } else{
                 if(d[xKey] < 0 && colours.length > 1){ 
                     colour = colours[1]
