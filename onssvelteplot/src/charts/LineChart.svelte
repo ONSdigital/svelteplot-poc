@@ -1,6 +1,6 @@
     <script>
     
-    import { Plot, AxisY, Line, Dot, Text } from 'svelteplot';
+    import { Plot, AxisY, Line, Dot, Text, Pointer, RuleX } from 'svelteplot';
     import { format } from "d3-format";
     import { timeParse, timeFormat} from "d3-time-format"
     import * as d3 from 'd3';
@@ -52,6 +52,7 @@
         addPointMarkers = true,
         drawLegend = smKey ? true : false,
         otherLegendLabel = "Other categories",
+        hover = true,
         tooltip,
         height,
         aspectRatio = [16,9],
@@ -62,6 +63,7 @@
     } = $props();
 
     let plotEl = $state()
+    let hovered = $state()
 
     let chartHeight = $derived(height ? height : getChartHeight({data: data, width: width, aspectRatio: aspectRatio, variant: variant}))
 
@@ -119,15 +121,18 @@
         otherLegendLabel: otherLegendLabel
     }))
 
-    let marginRight = $derived(!drawLegend && zKey && !margin.right ? getAxisMargin({domain: highlighted && referenceCategory && categories.length > 6 ? [highlighted, referenceCategory] : highlighted && categories.length > 6 ? [highlighted] : categories}) + 15 : margin.right)
+    let marginRight = $derived(!drawLegend && zKey && !margin.right ? getAxisMargin({domain: highlighted && referenceCategory && categories.length > 6 && !hover ? [highlighted, referenceCategory] : highlighted && categories.length > 6 &&!hover ? [highlighted] : categories}) + 15 : margin.right)
 
     let markerData = $derived.by(() => {
         let filtered = []
         if(highlighted){
-            data.filter((d) => d[zKey] == highlighted).forEach((d) => {filtered.push(d)})
+            [...data.filter((d) => d[zKey] == highlighted)].forEach((d) => {filtered.push(d)})
         }
         if(referenceCategory){
-            data.filter((d) => d[zKey] == referenceCategory).forEach((d) => filtered.push(d))
+            [...data.filter((d) => d[zKey] == referenceCategory)].forEach((d) => filtered.push(d))
+        }
+        if(hovered){
+            [...data.filter((d) => d[zKey] == hovered[zKey])].forEach((d) => {filtered.push(d)})
         }
         if(!referenceCategory && !highlighted){
             filtered = data
@@ -135,18 +140,21 @@
         return filtered
     })
 
+    $inspect(markerData.filter((d) => d[xKey] == domainX[domainX.length - 1]))
+
     $effect(() => {
         if(data && margin && !drawLegend && zKey){
             d3.select(plotEl).selectAll(".dataLabel").call(wrap, marginRight)
         }
-        if(data && (highlighted || referenceCategory)){
+        if(data && (highlighted || referenceCategory || hovered)){
             d3.select(plotEl).selectAll(".reference").raise()
             d3.select(plotEl).selectAll(".highlighted").raise()
+            d3.select(plotEl).selectAll(".hovered").raise()
         }
     })
 
     $effect(() => {
-        if(data){
+        if(data && hovered){
             resolveDataLabelOverlap({container: plotEl, selector: ".dataLabel"});
         }
     })
@@ -180,21 +188,39 @@
         x={xKey} 
         y={yKey}
         z={zKey ? zKey : null}
-        lineClass={(d) => d.datum[zKey] == highlighted ? 'highlighted' : d.datum[zKey] == referenceCategory ? 'reference' : ''}
+        lineClass={(d) => {
+            if(hovered){
+               return d.datum[zKey] == highlighted ? 'highlighted' : d.datum[zKey] == referenceCategory ? 'reference' : d.datum[zKey] == hovered[zKey] ? 'hovered' : ''
+            } else{
+                return d.datum[zKey] == highlighted ? 'highlighted' : d.datum[zKey] == referenceCategory ? 'reference' : ''    
+            }
+        }}
         strokeWidth={3}
         stroke={(d) => {
-            if(highlighted){
-                if(d[zKey] == highlighted){
+            if(!hovered){
+                if(highlighted){
+                    if(d[zKey] == highlighted){
+                        return ONScolours.oceanBlue
+                    } else if(d[zKey] == referenceCategory){
+                        return ONScolours.skyBlue
+                    } else{
+                        return ONScolours.grey40
+                    }
+                } else if(categories){
+                    return colours[categories.indexOf(d[zKey])]
+                } else{
+                    return colours[0] 
+                }
+            } else{
+                if(d[zKey] == hovered[zKey]){
+                    return ONScolours.highlightOrange
+                } else if(d[zKey] == highlighted){
                     return ONScolours.oceanBlue
                 } else if(d[zKey] == referenceCategory){
                     return ONScolours.skyBlue
                 } else{
                     return ONScolours.grey40
                 }
-            } else if(categories){
-                return colours[categories.indexOf(d[zKey])]
-            } else{
-                return colours[0] 
             }
         }}
     />
@@ -206,7 +232,18 @@
             y={yKey}
             r={4}          
             fill={(d) => {
-                if(highlighted){
+                if(hovered){
+                    if(d[zKey] == highlighted){
+                        return ONScolours.oceanBlue
+                    } else if(d[zKey] == referenceCategory){
+                        return ONScolours.skyBlue
+                    } else if(d[zKey] == hovered[zKey]){
+                        return ONScolours.highlightOrange
+                    } else{
+                        return ONScolours.grey40
+                    }
+                }
+                else if(highlighted){
                     if(d[zKey] == highlighted){
                         return ONScolours.oceanBlue
                     } else if(d[zKey] == referenceCategory){
@@ -216,17 +253,24 @@
                     }
                 }
                 else if(categories){
-                    if(categories.indexOf(d[zKey]) > 2){
-                        return "white"
-                    } else{
-                        return colours[categories.indexOf(d[zKey])]
-                    }
+                    return colours[categories.indexOf(d[zKey])]
                 } else{
                     return colours[0]
                 }
             }}
             stroke={(d) => {
-                if(highlighted){
+                if(hovered){
+                    if(d[zKey] == highlighted){
+                        return ONScolours.oceanBlue
+                    } else if(d[zKey] == referenceCategory){
+                        return ONScolours.skyBlue
+                    } else if(d[zKey] == hovered[zKey]){
+                        return ONScolours.highlightOrange
+                    } else{
+                        return ONScolours.grey40
+                    }
+                }
+                else if(highlighted){
                     if(d[zKey] == highlighted){
                         return ONScolours.oceanBlue
                     } else if(d[zKey] == referenceCategory){
@@ -242,7 +286,23 @@
                 }
             }}
             strokeWidth={3}
-            symbol={(d) => categories ? symbols[categories.indexOf(d[zKey])] : symbols[0]}
+            symbol={(d) => {
+                if(zKey){
+                    if(d[zKey] == highlighted){
+                        return symbols[0]
+                    } else if(d[zKey] == referenceCategory){
+                        return symbols[1]
+                    } else if(hovered){
+                        if(d[zKey] == hovered[zKey]){
+                            return referenceCategory ? symbols[2] : highlighted ? symbols[1] : symbols[0]
+                        }
+                    } else{
+                        return symbols[categories.indexOf(d[zKey])]
+                    }
+                } else{
+                    return symbols[0]
+                }
+            }}
         />
         {#if zKey}
             <Text
@@ -254,19 +314,31 @@
                 textClass="dataLabel"
                 textAnchor="start"
                 fill={(d) => {
-                    if(highlighted){
-                        if(d[zKey] == highlighted){
-                            return ONScolours.oceanBlue
-                        } else if(d[zKey] == referenceCategory){
-                            return ONScolours.skyBlue
-                        } else{
-                            return ONScolours.grey40
-                        }
-                    } else if(categories){
-                        return colours[categories.indexOf(d[zKey])]
+                if(hovered){
+                    if(d[zKey] == highlighted){
+                        return ONScolours.oceanBlue
+                    } else if(d[zKey] == referenceCategory){
+                        return ONScolours.skyBlue
+                    } else if(d[zKey] == hovered[zKey]){
+                        return ONScolours.highlightOrange
                     } else{
-                        return colours[0]
-                    }  
+                        return ONScolours.grey40
+                    }
+                }
+                else if(highlighted){
+                    if(d[zKey] == highlighted){
+                        return ONScolours.oceanBlue
+                    } else if(d[zKey] == referenceCategory){
+                        return ONScolours.skyBlue
+                    } else{
+                        return ONScolours.grey40
+                    }
+                }
+                else if(categories){
+                    return colours[categories.indexOf(d[zKey])]
+                } else{
+                    return colours[0]
+                } 
                 }}
             />
         {/if}
@@ -279,7 +351,18 @@
             y={yKey}
             r={4}          
             fill={(d) => {
-                if(highlighted){
+                if(hovered){
+                    if(d[zKey] == highlighted){
+                        return ONScolours.oceanBlue
+                    } else if(d[zKey] == referenceCategory){
+                        return ONScolours.skyBlue
+                    } else if(d[zKey] == hovered[zKey]){
+                        return ONScolours.highlightOrange
+                    } else{
+                        return ONScolours.grey40
+                    }
+                }
+                else if(highlighted){
                     if(d[zKey] == highlighted){
                         return ONScolours.oceanBlue
                     } else if(d[zKey] == referenceCategory){
@@ -295,6 +378,18 @@
                 }
             }}
         />
+    {/if}
+
+    {#if hover && zKey}
+        <Pointer
+            data={data.filter((d) => d[zKey] != highlighted && d[zKey] != referenceCategory)}
+            x={xKey}
+            y={yKey}
+            maxDistance={10}
+            onupdate={(data) => {
+                hovered = data[0]
+            }}>
+        </Pointer>
     {/if}
 </Plot>
 </div>
