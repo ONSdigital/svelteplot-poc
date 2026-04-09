@@ -55,7 +55,7 @@
         tooltip,
         height,
         aspectRatio = [16,9],
-        margin = {top: 0, bottom: 0, right: directLabels && zKey ? null : 20}, 
+        margin = {top: 10, bottom: 0, right: directLabels && zKey ? null : 20}, 
         colours = defaultColours[variant],
         symbols = ['circle', 'square', 'diamond2', 'circle', 'square', 'diamond2'],
         children
