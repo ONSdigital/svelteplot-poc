@@ -541,19 +541,20 @@ export function getLegendItems({
                 obj = zip(legendCategories,legendColours,symbols)
             }
         } else if(chartType == 'scatter'){
-            if(variant == 'simple'){
-                if(categories){
-                    obj = zip(categories,colours,symbols)
-                } else{
-                    obj = null
-                }
+            if(!highlighted){
+                obj = zip(categories,colours,symbols)
             } else{
-                if(!highlighted){
-                    obj = zip(categories,colours,symbols)
+                if(categories){
+                    const legendCategories = [highlighted, ...categories]
+                    const legendColours = [ONScolours.highlightOrange, ...colours]
+                    const legendSymbols = ['circle', ...symbols]
+                    console.log(legendSymbols)
+                    obj = zip(legendCategories,legendColours,legendSymbols)
                 } else{
                     const legendCategories = [highlighted,otherLegendLabel]
                     const legendColours = [ONScolours.highlightOrange, ...(Array.isArray(colours) ? colours : [colours])]
-                    obj = zip(legendCategories,legendColours,symbols)
+                    const legendSymbols = ['circle', 'circle']
+                    obj = zip(legendCategories,legendColours,legendSymbols)
                 }
             }
         }

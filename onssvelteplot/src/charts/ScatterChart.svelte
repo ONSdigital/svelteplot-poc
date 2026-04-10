@@ -42,10 +42,11 @@
         yAxisLabel, 
         xDomain = "auto",
         xFormat = ".0f",
-        xFormatDate,
         yDomain = "auto",
         yAxisTicks,
         yFormat = ",.0f",
+        rDomain,
+        rRange,
         ySort,
         ySortKey,
         otherLegendLabel = "Other categories",
@@ -106,7 +107,7 @@
         colours: colours,
         highlighted: highlighted,
         otherLegendLabel: variant == 'simple' ? null : otherLegendLabel,
-        symbols: !rKey ? symbols : 'circle'
+        symbols: symbols
     }))
 
     let dodgeY = $derived.by(() => {
@@ -188,7 +189,7 @@
         domain: domainX, 
         label:xAxisLabel ? xAxisLabel : "",
         grid: true,
-        tickFormat: (d) => xFormatDate ? timeFormat(xFormat)(timeParse(xFormatDate)(d)) : xFormat ? format(xFormat)(d) : d
+        tickFormat: (d) => xFormat ? format(xFormat)(d) : d
     }}
     y={{ 
         domain: variant == 'simple' ? domainY : null, 
@@ -204,6 +205,10 @@
         ticks: []
         // tickFormat: () => ""
     }} 
+    r={{ 
+        range: rRange ? rRange : null,
+        domain: rDomain ? rDomain : null,
+    }}
     >
 
     {#if addBackground && variant != 'simple'}
