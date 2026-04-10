@@ -25,9 +25,6 @@
             items
         } = $props()
 
-        
-    $inspect(items)
-
     const symbolGenerator = d3.symbol().size(120);
     const getPath = (type) => symbolGenerator.type(type)();
 

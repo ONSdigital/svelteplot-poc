@@ -98,7 +98,7 @@ export function getContinuousDomain({
         } else{
             return xDomain
         }
-    } else{
+    } else if(chartType == 'bar'){
         if(xDomain == "auto" && variant != "stacked"){
             if(min < 0){
                 return d3.extent(data, d => d[valueKey]);
@@ -126,6 +126,12 @@ export function getContinuousDomain({
                 d => d[categoryKey]
             );
             return [0, d3.max(categorySums.values())];
+        } else{
+            return xDomain;
+        }
+    } else{
+        if(xDomain == "auto" || xDomain == "data"){
+            return d3.extent(data, d => d[valueKey]);
         } else{
             return xDomain;
         }
@@ -242,10 +248,11 @@ export function getChartHeight({
 
 export function getAxisMargin({
 	domain,
+    format
 }){
 	let lengths = []
     if(Array.isArray(domain)){
-        domain.forEach((d) => lengths.push(labelPixelWidth(d) + 10))
+        domain.forEach((d) => lengths.push(labelPixelWidth(format ? d3.format(format)(d) : d) + 10))
         return d3.max(lengths)
     } else{
         return labelPixelWidth(domain) + 10
@@ -532,6 +539,22 @@ export function getLegendItems({
                 const legendCategories = [highlighted,otherLegendLabel]
                 const legendColours = [ONScolours.highlightOrange, ...(Array.isArray(colours) ? colours : [colours])]
                 obj = zip(legendCategories,legendColours,symbols)
+            }
+        } else if(chartType == 'scatter'){
+            if(variant == 'simple'){
+                if(categories){
+                    obj = zip(categories,colours,symbols)
+                } else{
+                    obj = null
+                }
+            } else{
+                if(!highlighted){
+                    obj = zip(categories,colours,symbols)
+                } else{
+                    const legendCategories = [highlighted,otherLegendLabel]
+                    const legendColours = [ONScolours.highlightOrange, ...(Array.isArray(colours) ? colours : [colours])]
+                    obj = zip(legendCategories,legendColours,symbols)
+                }
             }
         }
 

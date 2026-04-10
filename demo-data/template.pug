@@ -48,7 +48,6 @@ else
         prop.data= place.toData({y: ["Aged under 16", "Aged 16 to 24", "Aged 25 to 49", "Aged 50 to 64", "Aged 65 and over", "Aged under 16", "Aged 16 to 24", "Aged 25 to 49", "Aged 50 to 64", "Aged 65 and over"], x: ["prop_age0_15_2022", "prop_age16_24_2022","prop_age25_49_2022","prop_age50_64_2022","prop_age65_2022","prop_age0_15_2047", "prop_age16_24_2047","prop_age25_49_2047","prop_age50_64_2047","prop_age65_2047"], z: ["2022","2022","2022","2022","2022","2047","2047","2047","2047","2047"]})
         prop.xFormat .1%
         prop.dataLabels true
-        prop.xDomain data
 
     section#diverging-sm-chart.Chart
         prop.chartType bar
@@ -73,38 +72,20 @@ else
         prop.chartType line
         prop.data= places.filter((d) => d.areanm == place.areanm || d.areanm == "Gloucestershire").toData({y: ["p2027","p2028","p2029","p2030","p2031","p2032","p2033","p2034","p2035","p2036","p2037"], lci: ["p2022","p2023","p2024","p2025","p2026","p2027","p2028","p2029","p2030","p2031", "p2032"], uci: ["p2032","p2033","p2034","p2035","p2036","p2037","p2038","p2039","p2040","p2041","p2042"], x: ["2027","2028","2029","2030","2031","2032","2033","2034","2035","2036","2037"], z: "areanm"})
 
-    //- section#chart-bar.Chart
-    //-     prop.chartType bar
-    //-     prop.variant simple
-    //-     prop.data= places.filterBy("parentcd", place.parentcd).toData({y: "areanm", x: ["p2018", "p2019", "p2020"], z: ["Population in 2018", "Population in 2019", "Population in 2020"]})
-    //-     prop.ySort ascending
-    //-     prop.smKey z
-    //-     prop.chartEvery sm: 1|md: 2|lg: 3
-    //-     prop.xFormat ,.0f
-    //-     prop.dataLabels true
-    //-     prop.highlighted= place.areanm
-
-    //- section#chart-bar.Chart
-    //-     prop.chartType bar
-    //-     prop.variant stacked
-    //-     prop.data= places.filterBy("parentcd", place.parentcd).toData({y: "areanm", x: ["under162019","over162019","over652019","under162020","over162020","over652020"], z: ["Under 16", "16-64", "65 and over", "Under 16", "16-64", "65 and over"], w: ["Population in 2019", "Population in 2019", "Population in 2019", "Population in 2020", "Population in 2020", "Population in 2020"]})
-    //-     prop.ySort ascending
-    //-     prop.smKey w
-    //-     prop.chartEvery sm: 1|md: 2|lg: 2
-    //-     prop.xFormat ,.0f
-    //-     prop.highlighted= place.areanm
-
-    //- section#line-chart.Chart 
-    //-     prop.chartType line
-    //-     prop.data= places.filter((d) => d.areanm === place.areanm || d.areanm === 'Tewkesbury' || d.areanm === 'Stroud' || d.areanm == "Gloucester").toData({y: ["p2010","p2011","p2012","p2013","p2014","p2015","p2016","p2017","p2018","p2019","p2020"], x: ["2010", "2011", "2012", "2013", "2014", "2015", "2016", "2017", "2018", "2019", "2020"] , z: "areanm"})
-    //-     prop.aspectRatio 16|6
-    //-     prop.highlighted= place.areanm
-        
     section#beeswarm.Chart
-        prop.chartType beeswarm
-        prop.variant force
-        prop.data= places.filter((d) => d.areanm != "City of London").toData({y: ["10 year population change","25 year population change"], x: ["change10yr","change25yr"], z: "areanm"})
+        prop.chartType scatter
+        prop.data= places.toData({y: ["Aged Under 16", "Aged 16 to 24", "Aged 25 to 49", "Aged 50 to 64", "Aged 65 and over"], x: ["prop_age0_15_2047", "prop_age16_24_2047","prop_age25_49_2047","prop_age50_64_2047","prop_age65_2047"], r: "p2047", id: "areanm" })
+        prop.variant binned
+        prop.xFormat .0%
+        prop.yFormat .0%
         prop.highlighted= place.areanm
+
+    section#scatter.Chart
+        prop.chartType scatter
+        prop.data= places.toData({y: "prop_age65_2022", x: "change25yr", id: "areanm", z: "londonflag"})
         prop.xFormat .1%
-        prop.padding= -2
-        prop.seriesHeight= 150
+        prop.yFormat .1%
+        prop.xAxisLabel Projected population change (2022-2047)
+        prop.yAxisLabel Proportion aged 65 and over (2022)
+        prop.highlighted= place.areanm
+

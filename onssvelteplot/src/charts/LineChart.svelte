@@ -85,7 +85,7 @@
         groupKey: zKey
     }))
 
-    let yAxisMargin = $derived(margin.left ? margin.left : getAxisMargin({domain: domainY})+10)
+    let yAxisMargin = $derived(margin.left ? margin.left : getAxisMargin({domain: domainY, format: yFormat})+10)
 
     let categories = $derived.by(() => {
         let categoryArray = []

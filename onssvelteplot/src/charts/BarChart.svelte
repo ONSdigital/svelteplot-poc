@@ -110,6 +110,7 @@
     }))
 
     let domainX = $derived(getContinuousDomain({
+        chartType: type,
         data: data,
         variant: variant,
         categoryKey: yKey,
