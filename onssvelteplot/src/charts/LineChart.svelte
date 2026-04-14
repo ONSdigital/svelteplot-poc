@@ -114,18 +114,18 @@
             return null;
         }
         if(highlighted){
-            obj[highlighted] = {fill: ONScolours.oceanBlue, lineFill: ONScolours.oceanBlue, symbol: Array.isArray(symbols) ? symbols[0] : symbols}
-            obj[otherLegendLabel] = {fill: ONScolours.grey30, lineFill: ONScolours.grey30, symbol: Array.isArray(symbols) ? symbols[0] : symbols}
+            obj[highlighted] = {fill: ONScolours.oceanBlue, lineFill: ONScolours.oceanBlue, stroke: ONScolours.oceanBlue, symbol: Array.isArray(symbols) ? symbols[0] : symbols}
+            obj[otherLegendLabel] = {fill: ONScolours.grey30, lineFill: ONScolours.grey30, stroke: ONScolours.grey30, symbol: Array.isArray(symbols) ? symbols[0] : symbols}
         }
         if(referenceCategory){
-            obj[referenceCategory] = {fill: ONScolours.skyBlue, lineFill: ONScolours.skyBlue, symbol: Array.isArray(symbols) ? symbols[1] : symbols}
-            obj[otherLegendLabel] = {fill: ONScolours.grey30, lineFill: ONScolours.grey30, symbol: Array.isArray(symbols) ? symbols[0] : symbols}
+            obj[referenceCategory] = {fill: ONScolours.skyBlue, lineFill: ONScolours.skyBlue, stroke: ONScolours.skyBlue, symbol: Array.isArray(symbols) ? symbols[1] : symbols}
+            obj[otherLegendLabel] = {fill: ONScolours.grey30, lineFill: ONScolours.grey30, stroke: ONScolours.grey30, symbol: Array.isArray(symbols) ? symbols[0] : symbols}
         }
         if(categories && !highlighted && !referenceCategory){
             if(categories.length > 6){
-                obj[otherLegendLabel] = {fill: ONScolours.grey30, lineFill: ONScolours.grey30, symbol: Array.isArray(symbols) ? symbols[0] : symbols}
+                obj[otherLegendLabel] = {fill: ONScolours.grey30, lineFill: ONScolours.grey30, stroke: ONScolours.grey30, symbol: Array.isArray(symbols) ? symbols[0] : symbols}
             } else if(!directLabels){
-                categories.forEach((category, i) => obj[category] = {fill: i > 3 ? ONScolours.white : Array.isArray(colours) ? colours[i] : colours, lineFill:  Array.isArray(colours) ? colours[i] : colours, symbol: Array.isArray(symbols) ? symbols[i] : symbols, stroke: i > 3 ? Array.isArray(colours) ? colours[i] : colours : null} )
+                categories.forEach((category, i) => obj[category] = {fill: i > 3 ? ONScolours.white : Array.isArray(colours) ? colours[i] : colours, lineFill:  Array.isArray(colours) ? colours[i] : colours, symbol: Array.isArray(symbols) ? symbols[i] : symbols, stroke: Array.isArray(colours) ? colours[i] : colours} )
             }
         }
         if(ciKeys){

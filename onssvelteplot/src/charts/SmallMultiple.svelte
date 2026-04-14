@@ -8,8 +8,7 @@
     import { 
         getCategoricalDomain, 
         getContinuousDomain, 
-        getAxisMargin, 
-        getLegendItems
+        getAxisMargin
     } from '../js/utils';
     import { ONScolours, ONSpalette, oldONSpalette } from '../js/colours'
 
@@ -36,15 +35,17 @@
 
     let colours = $derived(props.colours ? props.colours : defaultColours[props.variant])
 
-    let legendItems = $derived(getLegendItems({
-        chartType: type,
-        variant: props.variant,
-        categories: categories,
-        colours: colours,
-        highlighted: typeof props.highlighted !== 'undefined' ? null : props.highlighted,
-        referenceCategory: typeof props.referenceCategory !== 'undefined' ? null : props.referenceCategory,
-        otherLegendLabel: typeof props.otherLegendLabel !== 'undefined' ? null : props.otherLegendLabel,
-    }))
+    // let legendItems = $derived(getLegendItems({
+    //     chartType: type,
+    //     variant: props.variant,
+    //     categories: categories,
+    //     colours: colours,
+    //     highlighted: typeof props.highlighted !== 'undefined' ? null : props.highlighted,
+    //     referenceCategory: typeof props.referenceCategory !== 'undefined' ? null : props.referenceCategory,
+    //     otherLegendLabel: typeof props.otherLegendLabel !== 'undefined' ? null : props.otherLegendLabel,
+    // }))
+
+    let legendItems = null
 
     let domainY = $derived(type == 'bar' && !props.yDomain ? getCategoricalDomain({
         data: data[Object.keys(data)[0]], 

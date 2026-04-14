@@ -112,7 +112,11 @@ text{
 }
 
 .legend--item path{
-  paint-order: stroke fill
+  paint-order: stroke fill;
+}
+
+.dot path{
+  paint-order: stroke fill;
 }
 
 @media (max-width: 400px) {
