@@ -57,19 +57,17 @@
         children
     } = $props();
 
-    $inspect(data)
-
     let plotEl = $state()
 
     let chartHeight = $derived(height ? height : getChartHeight({data: data, width: width, aspectRatio: aspectRatio, variant: variant}))
 
-    let domainY = $derived(getContinuousDomain({
+    let domainY = $derived(Array.isArray(yDomain) ? yDomain : getContinuousDomain({
         chartType: 'line',
         data: data,
         variant: variant,
         categoryKey: xKey,
         valueKey: yKey,
-        xDomain: yDomain,
+        domain: yDomain,
         ciKeys: ciKeys
     }))
 
@@ -166,11 +164,9 @@
         }
     })
 
-    $inspect(styleScheme)
-
 </script>
 
-{#if styleScheme}
+{#if styleScheme && !smKey}
     <Legend items={styleScheme}/>
 {/if}
 
@@ -181,6 +177,7 @@
     marginTop={margin.top ? margin.top : null}
     marginBottom={margin.bottom ? margin.bottom : null}
     height = {chartHeight} 
+    {width}
     x={{ 
         label:xAxisLabel ? xAxisLabel : "",
         tickFormat: (d) => xFormatDate ? timeFormat(xFormat)(timeParse(xFormatDate)(d)) : xFormat ? format(xFormat)(d) : d
@@ -190,7 +187,7 @@
         axis: 'left',
         grid: true,
         label: yAxisLabel ? yAxisLabel : "",
-        tickFormat: (d) => yFormat ? format(yFormat)(d) : d,
+        tickFormat: (d) => smGridPosition > 0 ? "" : yFormat ? format(yFormat)(d) : d,
     }}>
 
     {#if ciKeys}

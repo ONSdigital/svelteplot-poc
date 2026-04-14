@@ -116,7 +116,7 @@
         variant: variant,
         categoryKey: yKey,
         valueKey: xKey,
-        xDomain: xDomain
+        domain: xDomain
     }))
 
     let chartHeight = $derived(height ? height : getChartHeight({data: data, seriesHeight: seriesHeight, categoryKey: yKey, groupKey: zKey, variant: variant}))
@@ -178,8 +178,6 @@
             return null
         }
     })
-
-    $inspect(styleScheme)
 
     $effect(() => {
         if(data){

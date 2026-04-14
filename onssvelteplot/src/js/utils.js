@@ -74,7 +74,7 @@ export function getCategoricalDomain({
 export function getContinuousDomain({
     chartType,
 	data, 
-	xDomain = 'auto', 
+	domain = 'auto', 
 	categoryKey = 'y', 
 	valueKey = 'x', 
     groupKey,
@@ -84,7 +84,7 @@ export function getContinuousDomain({
     const max = ciKeys ? d3.max([d3.max(data, d => d[valueKey]), d3.max(data, d => d[ciKeys[0]]), d3.max(data, d => d[ciKeys[1]])]) : d3.max(data, d => d[valueKey])
     const min = ciKeys ? d3.min([d3.min(data, d => d[valueKey]), d3.min(data, d => d[ciKeys[0]]), d3.min(data, d => d[ciKeys[1]])]) : d3.min(data, d => d[valueKey])
     if(chartType == "line"){
-        if(xDomain == "auto"){
+        if(domain == "auto"){
             let buffer = (max - min) * 0.25
             if(min < 0){
                 return [min,max]
@@ -93,21 +93,21 @@ export function getContinuousDomain({
             } else{
                 return  [min - buffer, max + buffer]
             }
-        } else if(xDomain == "data"){
+        } else if(domain == "data"){
             return [min, max]
         } else{
-            return xDomain
+            return domain
         }
     } else if(chartType == 'bar'){
-        if(xDomain == "auto" && variant != "stacked"){
+        if(domain == "auto" && variant != "stacked"){
             if(min < 0){
                 return d3.extent(data, d => d[valueKey]);
             } else{
                 return [0, max];
             }
-        } else if(xDomain == "data" && variant != "stacked"){
+        } else if(domain == "data" && variant != "stacked"){
             return d3.extent(data, d => d[valueKey]);
-        } else if(xDomain == "auto" && variant == "stacked"){
+        } else if(domain == "auto" && variant == "stacked"){
             if(groupKey){
                 const groupedSums = d3.rollup(
                     data,
@@ -127,13 +127,13 @@ export function getContinuousDomain({
             );
             return [0, d3.max(categorySums.values())];
         } else{
-            return xDomain;
+            return domain;
         }
     } else{
-        if(xDomain == "auto" || xDomain == "data"){
+        if(domain == "auto" || domain == "data"){
             return d3.extent(data, d => d[valueKey]);
         } else{
-            return xDomain;
+            return domain;
         }
     }
 }

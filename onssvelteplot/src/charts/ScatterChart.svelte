@@ -92,9 +92,6 @@
     }))
 
     let yAxisMargin = $derived(margin.left ? margin.left : getAxisMargin({domain: domainY, format: yFormat})+10)
-
-    $inspect(domainY, yAxisMargin)
-
     let categories = $derived(zKey ? [...new Set(data.map((d) => d[zKey]))] : null)
 
     let chartHeight = $derived(height ? height : variant == "simple" ? getChartHeight({data: data, width: width, aspectRatio: aspectRatio, variant: variant}) : getChartHeight({data: data, seriesHeight: seriesHeight, categoryKey: yKey, variant: variant}))
