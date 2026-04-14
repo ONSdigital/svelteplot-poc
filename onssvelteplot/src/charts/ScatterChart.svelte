@@ -12,7 +12,6 @@
         getCategoricalDomain, 
         getChartHeight,
         getAxisMargin,
-        getLegendItems
     } from '../js/utils';
     import { ONScolours, ONSpalette, oldONSpalette } from '../js/colours'
     import Legend from "./shared/Legend.svelte"
@@ -100,15 +99,24 @@
 
     let chartHeight = $derived(height ? height : variant == "simple" ? getChartHeight({data: data, width: width, aspectRatio: aspectRatio, variant: variant}) : getChartHeight({data: data, seriesHeight: seriesHeight, categoryKey: yKey, variant: variant}))
 
-    let legendItems = $derived(getLegendItems({
-        chartType: type,
-        variant: variant,
-        categories: categories,
-        colours: colours,
-        highlighted: highlighted,
-        otherLegendLabel: variant == 'simple' ? null : otherLegendLabel,
-        symbols: symbols
-    }))
+    let styleScheme = $derived.by(() => {
+        let obj = {}
+        if(highlighted){
+            obj[highlighted] = {fill: Array.isArray(colours) ? colours[0] : colours, symbol: Array.isArray(symbols) ? symbols[0] : symbols, stroke: ONScolours.highlightOrange, strokeWidth: 8}
+            if(!categories){
+                obj[otherLegendLabel] = {fill: Array.isArray(colours) ? colours[0] : colours, symbol: Array.isArray(symbols) ? symbols[0] : symbols}
+            }
+        }
+        if(categories){
+            categories.forEach((category, i) => obj[category] = {fill: Array.isArray(colours) ? i > 3 ? ONScolours.white : colours[i] : colours, stroke: Array.isArray(colours) ? i > 3 ? colours[i] : null : colours, symbol: Array.isArray(symbols) ? symbols[i] : symbols })
+        }
+        if(highlighted && zKey){
+                let matchedItem = data.filter((d) => d[idKey] == highlighted)[0][zKey]
+                obj[highlighted].fill = obj[matchedItem].fill
+                obj[highlighted].symbol = obj[matchedItem].symbol
+        }
+        return Object.keys(obj).length === 0 ? null : obj
+    })
 
     let dodgeY = $derived.by(() => {
         if(variant != 'simple'){
@@ -156,8 +164,6 @@
         }
     })
 
-    $inspect(dots)
-
     $effect(() => {
         if (dots && plotEl && variant != 'simple'){
             d3.select(plotEl).selectAll('.axis-y').attr('display','none')
@@ -174,8 +180,8 @@
 
 </script>
 
-{#if legendItems}
-    <Legend items={legendItems}/>
+{#if styleScheme}
+    <Legend items={styleScheme}/>
 {/if}
 
 <div bind:this={plotEl}>
@@ -244,7 +250,7 @@
         dodgeY={variant != 'simple' ? { anchor: dodgeY, padding: padding} : null}         
         fill={(d) => {
             if(categories){
-                return categories.indexOf(d[zKey]) > 3 ? ONScolours.white : colours[categories.indexOf(d[zKey])]
+                return styleScheme[d[zKey]].fill
             } else{
                 return Array.isArray(colours) ? colours[0] : colours
             }
@@ -252,10 +258,10 @@
         stroke={(d) => {
             if(idKey){
                 if(d[idKey] == highlighted){
-                    return ONScolours.highlightOrange
+                    return styleScheme[highlighted].stroke
                 } else if(categories){
-                    if(categories.indexOf(d[zKey]) > 3){
-                        return colours[categories.indexOf(d[zKey])]
+                    if(styleScheme[d[zKey]].stroke){
+                        return styleScheme[d[zKey]].stroke
                     } else{
                         return ONScolours.white
                     }
@@ -269,9 +275,9 @@
         strokeWidth={(d) => {
             if(idKey){
                 if(d[idKey] == highlighted){
-                    return 8
+                    return styleScheme[highlighted].strokeWidth
                 } else if(categories){
-                    if(categories.indexOf(d[zKey]) > 3){
+                    if(styleScheme[d[zKey]].stroke){
                         return 3
                     } else{
                         return 1
@@ -283,7 +289,7 @@
                 return 1
             }
         }}
-        symbol={(d) => categories ? symbols[categories.indexOf(d[zKey])] : Array.isArray(symbols) ? symbols[0] : symbols}
+        symbol={(d) => categories ? styleScheme[d[zKey]].symbol : Array.isArray(symbols) ? symbols[0] : symbols}
         onpointerenter={(evt, d) => {
             if(tooltip) {
                 clearTimeout(leaveTimeout);

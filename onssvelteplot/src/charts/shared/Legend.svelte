@@ -35,7 +35,7 @@
         {#each Object.keys(items) as item}
             <div class="legend--item">
                 <svg height="24" width="24" >
-                    <path transform="translate(12,12)" d={getPath(symbols[items[item].symbol])} fill={items[item].colour} />
+                    <path transform="translate(12,12)" d={getPath(symbols[items[item].symbol])} fill={items[item].fill} stroke={items[item].stroke} stroke-width={items[item].strokeWidth} />
                 </svg>
                 <p class="legend--text">{item}</p>
             </div>

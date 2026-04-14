@@ -10,13 +10,9 @@
         wrap,
         getCategoricalDomain, 
         getContinuousDomain, 
-        groupData, 
-        stackData, 
-        labelPixelWidth, 
         getChartHeight,
         getAxisMargin,
         resolveDataLabelOverlap,
-        getLegendItems
     } from '../js/utils';
     import { ONScolours, ONSpalette, oldONSpalette } from '../js/colours'
     import Legend from "./shared/Legend.svelte"
@@ -112,18 +108,31 @@
         return categoryArray
     })
 
-    let legendItems = $derived(getLegendItems({
-        chartType: type,
-        variant: variant,
-        categories: categories,
-        colours: colours,
-        highlighted: highlighted,
-        referenceCategory: referenceCategory,
-        otherLegendLabel: otherLegendLabel,
-        confidenceInterval: ciKeys ? ciKeys : null,
-        directLabels: directLabels,
-        symbols: addEndMarkers || addPointMarkers ? symbols : 'circle'
-    }))
+    let styleScheme = $derived.by(() => {
+        let obj = {}
+        if(!categories & !ciKeys){
+            return null;
+        }
+        if(highlighted){
+            obj[highlighted] = {fill: ONScolours.oceanBlue, lineFill: ONScolours.oceanBlue, symbol: Array.isArray(symbols) ? symbols[0] : symbols}
+            obj[otherLegendLabel] = {fill: ONScolours.grey30, lineFill: ONScolours.grey30, symbol: Array.isArray(symbols) ? symbols[0] : symbols}
+        }
+        if(referenceCategory){
+            obj[referenceCategory] = {fill: ONScolours.skyBlue, lineFill: ONScolours.skyBlue, symbol: Array.isArray(symbols) ? symbols[1] : symbols}
+            obj[otherLegendLabel] = {fill: ONScolours.grey30, lineFill: ONScolours.grey30, symbol: Array.isArray(symbols) ? symbols[0] : symbols}
+        }
+        if(categories && !highlighted && !referenceCategory){
+            if(categories.length > 6){
+                obj[otherLegendLabel] = {fill: ONScolours.grey30, lineFill: ONScolours.grey30, symbol: Array.isArray(symbols) ? symbols[0] : symbols}
+            } else if(!directLabels){
+                categories.forEach((category, i) => obj[category] = {fill: i > 3 ? ONScolours.white : Array.isArray(colours) ? colours[i] : colours, lineFill:  Array.isArray(colours) ? colours[i] : colours, symbol: Array.isArray(symbols) ? symbols[i] : symbols, stroke: i > 3 ? Array.isArray(colours) ? colours[i] : colours : null} )
+            }
+        }
+        if(ciKeys){
+            obj["95% confidence interval"] = {fill: categories ? ONScolours.grey30 : Array.isArray(colours) ? colours[0] : colours, symbol: 'square'}
+        }
+        return obj
+    })
 
     let marginRight = $derived(directLabels && zKey && !margin.right ? getAxisMargin({domain: highlighted && referenceCategory && categories.length > 6 ? [highlighted, referenceCategory] : highlighted && categories.length > 6 ? [highlighted] : categories}) + 15 : margin.right)
 
@@ -157,11 +166,12 @@
         }
     })
 
-    $inspect(legendItems)
+    $inspect(styleScheme)
+
 </script>
 
-{#if legendItems}
-    <Legend items={legendItems}/>
+{#if styleScheme}
+    <Legend items={styleScheme}/>
 {/if}
 
 <div bind:this={plotEl}>
@@ -194,16 +204,16 @@
             fill={(d) => {
                 if(highlighted){
                     if(d[zKey] == highlighted){
-                        return ONScolours.oceanBlue
+                        return styleScheme[highlighted].lineFill
                     } else if(d[zKey] == referenceCategory){
-                        return ONScolours.skyBlue
+                        return styleScheme[referenceCategory].lineFill
                     } else{
-                        return ONScolours.grey40
+                        return styleScheme[d[zKey]].lineFill
                     }
                 } else if(categories){
-                    return colours[categories.indexOf(d[zKey])]
+                    return styleScheme[d[zKey]].lineFill
                 } else{
-                    return colours[0] 
+                    return Array.isArray(colours) ? colours[0] : colours
                 }
             }}
         />
@@ -217,19 +227,21 @@
         lineClass={(d) => d.datum[zKey] == highlighted ? 'highlighted' : d.datum[zKey] == referenceCategory ? 'reference' : ''}
         strokeWidth={3}
         stroke={(d) => {
-            if(highlighted){
-                if(d[zKey] == highlighted){
-                    return ONScolours.oceanBlue
-                } else if(d[zKey] == referenceCategory){
-                    return ONScolours.skyBlue
+                if(highlighted){
+                    if(d[zKey] == highlighted){
+                        return styleScheme[highlighted].lineFill
+                    } else if(d[zKey] == referenceCategory){
+                        return styleScheme[referenceCategory].lineFill
+                    } else if(categories.length > 6){
+                            return styleScheme[otherLegendLabel].lineFill
+                    } else{
+                            return styleScheme[d[zKey]].lineFill
+                    }
+                } else if(categories){
+                    return styleScheme[d[zKey]].lineFill
                 } else{
-                    return ONScolours.grey40
+                    return Array.isArray(colours) ? colours[0] : colours
                 }
-            } else if(categories){
-                return colours[categories.indexOf(d[zKey])]
-            } else{
-                return colours[0] 
-            }
         }}
     />
 
@@ -242,41 +254,52 @@
             fill={(d) => {
                 if(highlighted){
                     if(d[zKey] == highlighted){
-                        return ONScolours.oceanBlue
+                        return styleScheme[highlighted].fill
                     } else if(d[zKey] == referenceCategory){
-                        return ONScolours.skyBlue
+                        return styleScheme[referenceCategory].fill
                     } else{
-                        return ONScolours.grey40
+                        return styleScheme[otherLegendLabel].fill
                     }
                 }
                 else if(categories){
-                    if(categories.indexOf(d[zKey]) > 2 || (categories.length < 4 && addPointMarkers)){
-                        return "white"
-                    } else{
-                        return colours[categories.indexOf(d[zKey])]
-                    }
+                    return styleScheme[d[zKey]].fill
                 } else{
-                    return colours[0]
+                    return Array.isArray(colours) ? colours[0] : colours
                 }
             }}
             stroke={(d) => {
                 if(highlighted){
                     if(d[zKey] == highlighted){
-                        return ONScolours.oceanBlue
+                        return styleScheme[highlighted].stroke
                     } else if(d[zKey] == referenceCategory){
-                        return ONScolours.skyBlue
+                        return styleScheme[referenceCategory].stroke
                     } else{
-                        return ONScolours.grey40
+                        return styleScheme[otherLegendLabel].stroke
                     }
                 }
                 else if(categories){
-                    return colours[categories.indexOf(d[zKey])]
+                    return styleScheme[d[zKey]].stroke
                 } else{
-                    return colours[0]
+                    return Array.isArray(colours) ? colours[0] : colours
                 }
             }}
             strokeWidth={3}
-            symbol={(d) => categories ? symbols[categories.indexOf(d[zKey])] : symbols[0]}
+            symbol={(d) => {
+                if(highlighted){
+                    if(d[zKey] == highlighted){
+                        return styleScheme[highlighted].symbol
+                    } else if(d[zKey] == referenceCategory){
+                        return styleScheme[referenceCategory].symbol
+                    } else{
+                        return styleScheme[otherLegendLabel].symbol
+                    }
+                }
+                else if(categories){
+                    return styleScheme[d[zKey]].symbol
+                } else{
+                    return Array.isArray(symbols) ? symbols[0] : symbols
+                }
+            }}
         />
         {#if zKey && directLabels}
             <Text
@@ -311,26 +334,56 @@
             data={markerData.filter((d) => d[xKey] != domainX[domainX.length-1])}
             x={xKey}
             y={yKey}
-            r={4}          
-            stroke={(d) => {
+            r={4}                 
+            fill={(d) => {
                 if(highlighted){
                     if(d[zKey] == highlighted){
-                        return ONScolours.oceanBlue
+                        return styleScheme[highlighted].fill
                     } else if(d[zKey] == referenceCategory){
-                        return ONScolours.skyBlue
+                        return styleScheme[referenceCategory].fill
                     } else{
-                        return ONScolours.grey40
+                        return styleScheme[otherLegendLabel].fill
                     }
                 }
                 else if(categories){
-                    return colours[categories.indexOf(d[zKey])]
+                    return styleScheme[d[zKey]].fill
                 } else{
-                    return colours[0]
+                    return Array.isArray(colours) ? colours[0] : colours
                 }
             }}
-            strokeWidth={4}
-            fill={ONScolours.white}
-            symbol={(d) => categories ? symbols[categories.indexOf(d[zKey])] : symbols[0]}
+            stroke={(d) => {
+                if(highlighted){
+                    if(d[zKey] == highlighted){
+                        return styleScheme[highlighted].stroke
+                    } else if(d[zKey] == referenceCategory){
+                        return styleScheme[referenceCategory].stroke
+                    } else{
+                        return styleScheme[otherLegendLabel].stroke
+                    }
+                }
+                else if(categories){
+                    return styleScheme[d[zKey]].stroke
+                } else{
+                    return Array.isArray(colours) ? colours[0] : colours
+                }
+            }}
+            strokeWidth={3}
+            symbol={(d) => {
+                if(highlighted){
+                    if(d[zKey] == highlighted){
+                        return styleScheme[highlighted].symbol
+                    } else if(d[zKey] == referenceCategory){
+                        return styleScheme[referenceCategory].symbol
+                    } else{
+                        return styleScheme[otherLegendLabel].symbol
+                    }
+                }
+                else if(categories){
+                    return styleScheme[d[zKey]].symbol
+                } else{
+                    return Array.isArray(symbols) ? symbols[0] : symbols
+                }
+            }}
         />
     {/if}
 </Plot>

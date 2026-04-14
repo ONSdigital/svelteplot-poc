@@ -12,8 +12,7 @@
         labelPixelWidth, 
         getChartHeight, 
         getSeriesHeight,
-        getAxisMargin,
-        getLegendItems
+        getAxisMargin
     } from '../js/utils';
     import { ONScolours, ONSpalette, oldONSpalette } from '../js/colours'
     import Legend from "./shared/Legend.svelte"
@@ -100,14 +99,16 @@
 
     let categories = $derived(zKey && variant != "simple" ? [...new Set(data.map((d) => d[zKey]))] : null)
 
+    let styleScheme = $derived.by(() => {
+        let obj = {}
+        if(categories){
+            categories.forEach((category, i) => obj[category] = {fill: Array.isArray(colours) ? colours[i] : colours, symbol: 'circle'} )
+        } else{
+            obj = null
+        }
+        return obj
+    })
 
-    let colourScheme = $derived(getLegendItems({
-        chartType: type,
-        variant: variant,
-        categories: categories,
-        colours: colours,
-        highlighted: highlighted
-    }))
 
     let domainX = $derived(getContinuousDomain({
         chartType: type,
@@ -178,6 +179,8 @@
         }
     })
 
+    $inspect(styleScheme)
+
     $effect(() => {
         if(data){
             d3.select(plotEl).selectAll(".is-left").attr("text-anchor","end")
@@ -193,7 +196,7 @@
 </script>
 
 {#if categories && !smKey}
-    <Legend items={colourScheme}/>
+    <Legend items={styleScheme}/>
 {/if}
 
 <div bind:this={plotEl}>
@@ -217,10 +220,6 @@
         label:xAxisLabel ? xAxisLabel : "",
         tickFormat: (d) => xFormatDate ? timeFormat(xFormat)(timeParse(xFormatDate)(d)) : xFormat ? format(xFormat)(d) : d,
         grid: true
-    }}
-    color={{ 
-        // legend: variant == "clustered" || variant == "stacked" ? true : false,
-        scheme: colours
     }}
     fy={{
         axis: 'left',
@@ -255,7 +254,7 @@
         fill={(d) => {
             let colour;
             if(variant == "stacked" || variant == "clustered"){
-                colour = colourScheme[d[zKey]].colour
+                colour = styleScheme[d[zKey]].fill
             } else if(d[yKey] == highlighted){
                 colour = ONScolours.oceanBlue
             } else if(highlighted){

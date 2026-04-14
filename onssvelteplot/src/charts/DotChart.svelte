@@ -10,8 +10,7 @@
             getAxisMargin,
             flagCloseXInGroups,
             labelPixelWidth,
-            getLabelPosition,
-            getLegendItems
+            getLabelPosition
         } from '../js/utils';
     import { ONScolours, ONSpalette } from '../js/colours';
     import Legend from "./shared/Legend.svelte";
@@ -192,31 +191,14 @@
         }
     });
 
-    let colourScheme = $derived(getLegendItems({
-        chartType: type,
-        variant: variant,
-        categories: categories,
-        colours: colours,
-        highlighted: highlighted,
-        referenceCategory: null,
-        otherLegendLabel: null
-    }))
-
-    let symbols = ['circle', 'diamond2', 'square'];
-
-    let symbolScheme = $derived.by(() => {
-        let symbolsvar = {};
+    let styleScheme = $derived.by(() => {
+        let obj = {}
         if(categories){
-            let i = 0;
-            categories.forEach((category) => {
-                symbolsvar[category] = symbols[i % symbols.length];
-                i = i + 1;
-            });
-        } else {
-            symbolsvar = symbols[0];
+            categories.forEach((category, i) => obj[category] = {fill: Array.isArray(colours) ? colours[i] : colours, symbol: Array.isArray(symbols) ? symbols[i] : symbols} )
+        } else{
+            obj = null
         }
-        return symbolsvar;
-    });
+    })
 
     let valuePerPixel = $derived.by(() => {
         const chartWidth = width - yAxisMargin - yAxisBuffer - marginRight
@@ -385,24 +367,25 @@
             data={dataDot}
             x={xKey} 
             fill={(d) => {
-                let colour;
-                if((variant == "simple") || (variant == "comparison") || (variant == "range")){
-                    colour = colourScheme[d[zKey]]
-                } else if(d[yKey] == highlighted){
-                    colour = colours[0]
-                } else if(highlighted){
-                    colour = ONScolours.grey50
+                if(categories){
+                    return styleScheme[d[zKey]].fill
                 } else{ 
-                    colour = colours[0]
+                    return Array.isArray(colours) ? colours[0] : colours
                 }
-                return colour
             }}
             y={yKey}
             dy={(d) => {
                 return d.dy;
             }}
             r={+radius}
-            symbol={(d) => symbolScheme[d[zKey]]}
+            symbol={(d) => {
+                let symbols;
+                if(categories){
+                    return styleScheme[d[zKey]].symbol
+                } else{ 
+                    return  Array.isArray(colours) ? colours[0] : colours
+                }
+            }}            
             {stroke}
             {strokeWidth}
             />
@@ -423,18 +406,12 @@
             fill={(d) => {
                 let colour;
                 if(variant == "simple" || variant == "comparison" || variant == "range"){
-                    colour = colourScheme[d[zKey]]
+                    colour = styleScheme[d[zKey]].fill
                 } 
                 else if (variant === "arrow") {
                     colour = d.colour
-                }
-                else if(d[yKey] == highlighted){
-                    colour = colours[0]
-                } else if(highlighted){
-                    colour = ONScolours.grey50
-                } 
-                else{ 
-                    colour = colours[0]
+                } else{ 
+                    colour = Array.isArray(colours) ? colours[0] : colours
                 }
                 return colour
             }}

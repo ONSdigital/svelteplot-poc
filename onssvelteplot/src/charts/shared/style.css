@@ -111,6 +111,10 @@ text{
     margin-bottom: 6px;
 }
 
+.legend--item path{
+  paint-order: stroke fill
+}
+
 @media (max-width: 400px) {
   #legend {
     flex-flow: column;
