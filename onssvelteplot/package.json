@@ -1,8 +1,8 @@
 {
   "name": "@onsvisual/onssvelteplot",
-  "version": "0.4.11",
+  "version": "0.4.12",
   "description": "Reusable chart templates for Svelte projects.",
-  "homepage": "http://onsdigital.github.io/svelte-charts",
+  "homepage": "https://github.com/onsdigital/svelteplot-poc",
   "files": [
     "index.mjs",
     "src",
@@ -17,7 +17,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+ssh://git@github.com/onsdigital/svelte-charts.git"
+    "url": "git+ssh://git@github.com/onsdigital/svelteplot-poc.git"
   },
   "keywords": [
     "svelte",
@@ -29,7 +29,7 @@
   "author": "Ahmad Barclay",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/onsdigital/svelte-charts/issues"
+    "url": "https://github.com/onsdigital/svelteplot-poc/issues"
   },
   "devDependencies": {
     "@rollup/plugin-commonjs": "^11.0.0",
