@@ -63,21 +63,15 @@ else
 
     section#line-chart.Chart
         prop.chartType line
-        prop.data= places.filterBy("parentcd", place.parentcd).toData({y: ["p2022","p2023","p2024","p2025","p2026","p2027","p2028","p2029","p2030","p2031","p2032","p2033","p2034","p2035","p2036","p2037","p2038","p2039","p2040","p2041","p2042","p2043","p2044","p2045","p2046","p2047"], x: ["2022","2023","2024","2025","2026","2027","2028","2029","2030","2031","2032","2033","2034","2035","2036","2037","2038","2039","2040","2041","2042","2043","2044","2045","2046","2047"], z: "areanm"})
+        prop.data= places.filter((d) => d.areanm == place.areanm || d.areanm == "Gloucestershire" || d.areanm == "Leicestershire" || d.areanm == "Lincolnshire" || d.areanm == "Warwickshire").toData({y: ["p2022","p2023","p2024","p2025","p2026","p2027","p2028","p2029","p2030","p2031","p2032","p2033","p2034","p2035","p2036","p2037","p2038","p2039","p2040","p2041","p2042","p2043","p2044","p2045","p2046","p2047"], x: ["2022","2023","2024","2025","2026","2027","2028","2029","2030","2031","2032","2033","2034","2035","2036","2037","2038","2039","2040","2041","2042","2043","2044","2045","2046","2047"], z: "areanm"})
         prop.highlighted= place.areanm
         prop.directLabels true
         prop.otherLegendLabel Other local authorities in #{place.parentnm} 
 
-    section#line-chart.Chart
-        prop.chartType line
-        prop.data= places.filter((d) => d.areanm == place.areanm || d.areanm == "Warwickshire").toData({y: ["prop_age25_49_2022","prop_age25_49_2023","prop_age25_49_2024","prop_age25_49_2025","prop_age25_49_2026","prop_age25_49_2027","prop_age25_49_2028","prop_age25_49_2029","prop_age25_49_2030","prop_age25_49_2031","prop_age25_49_2032","prop_age25_49_2033","prop_age25_49_2034","prop_age25_49_2035","prop_age25_49_2036","prop_age25_49_2037","prop_age25_49_2038","prop_age25_49_2039","prop_age25_49_2040","prop_age25_49_2041","prop_age25_49_2042","prop_age25_49_2043","prop_age25_49_2044","prop_age25_49_2045","prop_age25_49_2046","prop_age25_49_2047", "prop_age50_64_2022","prop_age50_64_2023","prop_age50_64_2024","prop_age50_64_2025","prop_age50_64_2026","prop_age50_64_2027","prop_age50_64_2028","prop_age50_64_2029","prop_age50_64_2030","prop_age50_64_2031","prop_age50_64_2032","prop_age50_64_2033","prop_age50_64_2034","prop_age50_64_2035","prop_age50_64_2036","prop_age50_64_2037","prop_age50_64_2038","prop_age50_64_2039","prop_age50_64_2040","prop_age50_64_2041","prop_age50_64_2042","prop_age50_64_2043","prop_age50_64_2044","prop_age50_64_2045","prop_age50_64_2046","prop_age50_64_2047"], x: ["2022","2023","2024","2025","2026","2027","2028","2029","2030","2031","2032","2033","2034","2035","2036","2037","2038","2039","2040","2041","2042","2043","2044","2045","2046","2047", "2022","2023","2024","2025","2026","2027","2028","2029","2030","2031","2032","2033","2034","2035","2036","2037","2038","2039","2040","2041","2042","2043","2044","2045","2046","2047"], z:["Aged 25 to 49","Aged 25 to 49","Aged 25 to 49","Aged 25 to 49","Aged 25 to 49","Aged 25 to 49","Aged 25 to 49","Aged 25 to 49","Aged 25 to 49","Aged 25 to 49","Aged 25 to 49","Aged 25 to 49","Aged 25 to 49","Aged 25 to 49","Aged 25 to 49","Aged 25 to 49","Aged 25 to 49","Aged 25 to 49","Aged 25 to 49","Aged 25 to 49","Aged 25 to 49","Aged 25 to 49","Aged 25 to 49","Aged 25 to 49","Aged 25 to 49","Aged 25 to 49","Aged 50 to 64","Aged 50 to 64","Aged 50 to 64","Aged 50 to 64","Aged 50 to 64","Aged 50 to 64","Aged 50 to 64","Aged 50 to 64","Aged 50 to 64","Aged 50 to 64","Aged 50 to 64","Aged 50 to 64","Aged 50 to 64","Aged 50 to 64","Aged 50 to 64","Aged 50 to 64","Aged 50 to 64","Aged 50 to 64","Aged 50 to 64","Aged 50 to 64","Aged 50 to 64","Aged 50 to 64","Aged 50 to 64","Aged 50 to 64","Aged 50 to 64", "Aged 50 to 64"], sm: "areanm"})
-        prop.smKey sm
-        prop.zKey z
-        prop.yFormat .1%
-
     section#line-chart-ci.Chart
         prop.chartType line
         prop.data= places.filter((d) => d.areanm == place.areanm || d.areanm == "Gloucestershire").toData({y: ["p2027","p2028","p2029","p2030","p2031","p2032","p2033","p2034","p2035","p2036","p2037"], lci: ["p2022","p2023","p2024","p2025","p2026","p2027","p2028","p2029","p2030","p2031", "p2032"], uci: ["p2032","p2033","p2034","p2035","p2036","p2037","p2038","p2039","p2040","p2041","p2042"], x: ["2027","2028","2029","2030","2031","2032","2033","2034","2035","2036","2037"], z: "areanm"})
+        prop.directLabels true
 
     section#beeswarm.Chart
         prop.chartType scatter

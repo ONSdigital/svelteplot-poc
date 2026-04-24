@@ -194,9 +194,6 @@
             return null
         }
     })
-
-    $inspect(domainY)
-
     let yAxisMargin = $derived(margin.left ? margin.left : getAxisMargin({domain: domainY}))
 
     let smMargin = $derived([
