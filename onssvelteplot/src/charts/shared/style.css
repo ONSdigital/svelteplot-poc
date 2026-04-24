@@ -128,3 +128,36 @@ text{
     padding-bottom: 8px;
   }
 }
+
+.axis, svg, line, .tick, .dot path:not(.highlighted), .link path, .item {
+	transition: transform 0.5s ease-in-out, fill 0.5s ease-in-out, opacity 0.5s ease-in-out, d 0.4s cubic-bezier(0.4, 0, 0.2, 1);;
+	opacity: 1;
+}
+
+.tick{
+  animation-name: fadeInOpacity;
+	animation-timing-function: ease-in;
+	animation-duration: 0.5s;
+}
+
+path.higlighted{
+	transition: transform 0.5s ease-in-out, fill 0.5s ease-in-out, opacity 0.5s ease-in-out;
+}
+
+.highlighted-annotation{
+	transition: transform 0.5s;
+	fill: orange;
+	opacity: 1;
+	animation-name: fadeInOpacity;
+	animation-timing-function: ease-in;
+	animation-duration: 0.2s;
+}
+
+@keyframes fadeInOpacity {
+	0% {
+		opacity: 0;
+	}
+	100% {
+		opacity: 1;
+	}
+}
